@@ -1,40 +1,73 @@
 package com.lombokapp.kasirku.Model;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Result {
+    @SerializedName("success")
+    @Expose
+    private Integer success;
+    @SerializedName("username")
+    @Expose
+    private String username;
+    @SerializedName("pass")
+    @Expose
+    private String pass;
+    @SerializedName("status")
+    @Expose
+    private String status;
+    @SerializedName("message")
+    @Expose
+    private String message;
     @SerializedName("error")
+    @Expose
     private Boolean error;
 
-    @SerializedName("message")
-    private String message;
-
-    @SerializedName("user")
-    private User user;
-
-
-    public Result(Boolean error, String message, User user) {
-        this.error = error;
-        this.message = message;
-        this.user = user;
+    public Integer getSuccess() {
+        return success;
     }
 
-    public Result(Boolean error, String message) {
-        this.error = error;
-        this.message = message;
+    public void setSuccess(Integer success) {
+        this.success = success;
     }
 
+    public String getUsername() {
+        return username;
+    }
 
-    public Boolean getError() {
-        return error;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public User getUser() {
-        return user;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
+    public Boolean getError() {
+        return error;
+    }
+
+    public void setError(Boolean error) {
+        this.error = error;
+    }
 }
