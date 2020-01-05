@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.lombokapp.kasirku.Model.Result;
+import com.lombokapp.kasirku.adapter.SharedPrefManager;
 import com.lombokapp.kasirku.api.ApiService;
 import com.lombokapp.kasirku.api.APIUrl;
 
@@ -48,12 +49,6 @@ public class PengaturanActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pengaturan);
-        EditText ednama_usaha = new EditText(PengaturanActivity.this);
-        EditText edalamat_usaha = new EditText(PengaturanActivity.this);
-        EditText ednohp_usaha = new EditText(PengaturanActivity.this);
-        EditText edemail_usaha = new EditText(PengaturanActivity.this);
-        EditText edwebsite = new EditText(PengaturanActivity.this);
-
 
         lvdata = findViewById(R.id.lvdata);
         sp=getApplicationContext().getSharedPreferences("config",0);
@@ -88,29 +83,34 @@ public class PengaturanActivity extends AppCompatActivity {
                     adb.setCancelable(false);
                     final EditText ednama_usaha = new EditText(PengaturanActivity.this);
                     final EditText edalamat_usaha = new EditText(PengaturanActivity.this);
-                    final EditText ednohp_usaha = new EditText(PengaturanActivity.this);
                     final EditText edemail_usaha = new EditText(PengaturanActivity.this);
                     final EditText edwebsite = new EditText(PengaturanActivity.this);
+                    final EditText ednohp_usaha = new EditText(PengaturanActivity.this);
 
+                    ednama_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getNama_p());
                     TextInputLayout tilnama_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnama_usaha.addView(ednama_usaha);
                     tilnama_usaha.setHint("Nama Usaha");
 
+                    edalamat_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getAlamat());
                     TextInputLayout tilalamat_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilalamat_usaha.addView(edalamat_usaha);
                     tilalamat_usaha.setHint("Alamat");
 
+                    ednohp_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getNo_hp());
                     TextInputLayout tilnohp_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnohp_usaha.addView(ednohp_usaha);
                     tilnohp_usaha.setHint("No Handphone");
 
-                    TextInputLayout tilemail = new TextInputLayout(PengaturanActivity.this);
-                    tilemail.addView(edemail_usaha);
-                    tilemail.setHint("Email");
-
+                    edwebsite.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getWebsite());
                     TextInputLayout tilweb = new TextInputLayout(PengaturanActivity.this);
                     tilweb.addView(edwebsite);
                     tilweb.setHint("Website");
+
+                    edemail_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getEmail());
+                    TextInputLayout tilemail = new TextInputLayout(PengaturanActivity.this);
+                    tilemail.addView(edemail_usaha);
+                    tilemail.setHint("Email");
 
                     LinearLayout ll = new LinearLayout(PengaturanActivity.this);
                     ll.setPadding(10, 10, 10, 10);
@@ -173,7 +173,7 @@ public class PengaturanActivity extends AppCompatActivity {
                             call.enqueue(new Callback<Result>() {
                                 @Override
                                 public void onResponse(Call<Result> call, Response<Result> response) {
-                                    System.out.println(response.body().getUser());
+                                    System.out.println(response.body().getUsername());
                                     if (!response.body().getError()){
                                         Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
                                     }else {
