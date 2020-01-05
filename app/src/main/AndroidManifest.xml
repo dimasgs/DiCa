@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.lombokapp.kasirku">
+
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="true" />
+
+
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/restoku"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/restoku"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name="com.lombokapp.kasirku.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.lombokapp.kasirku.PersediaanActivity" />
+        <activity android:name="com.lombokapp.kasirku.PembelianActivity" />
+        <activity android:name="com.lombokapp.kasirku.PenjualanActivity" />
+        <activity android:name="com.lombokapp.kasirku.CatatanActivity" />
+        <activity android:name="com.lombokapp.kasirku.TambahPersediaanActivity" />
+        <activity android:name="com.lombokapp.kasirku.TambahPembelianActivity" />
+        <activity android:name="com.lombokapp.kasirku.CariBarangActivity" />
+        <activity android:name="com.lombokapp.kasirku.TambahPenjualanActivity" />
+        <activity android:name="com.lombokapp.kasirku.BarcodeActivity" />
+        <activity android:name="com.lombokapp.kasirku.CameraActivity" />
+        <activity android:name="com.lombokapp.kasirku.RacikActivity" />
+        <activity android:name="com.lombokapp.kasirku.PosBarcodeActivity" />
+        <activity android:name="com.lombokapp.kasirku.LaporanActivity" />
+        <activity android:name="com.lombokapp.kasirku.LihatLaporanActivity" />
+        <activity android:name="com.lombokapp.kasirku.PengaturanActivity" />
+        <activity android:name="com.lombokapp.kasirku.InfoUsahaActivity" />
+        <activity android:name="com.lombokapp.kasirku.PenggunaActivity" />
+        <activity android:name="com.lombokapp.kasirku.PrinterActivity" />
+        <activity android:name="com.lombokapp.kasirku.MainActivity" />
+        <activity android:name="com.lombokapp.kasirku.RegisterActivity" />
+    </application>
+
+</manifest>
