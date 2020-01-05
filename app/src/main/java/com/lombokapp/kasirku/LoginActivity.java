@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.lombokapp.kasirku.Model.Result;
+import com.lombokapp.kasirku.Model.User;
 import com.lombokapp.kasirku.adapter.SharedPrefManager;
 import com.lombokapp.kasirku.api.ApiService;
 import com.lombokapp.kasirku.api.APIUrl;
@@ -36,7 +37,6 @@ public class LoginActivity extends AppCompatActivity {
     EditText edusername,edpassword,edid_perusahaan;
     Button bmasuk;
     Context mContext;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,7 +102,7 @@ public class LoginActivity extends AppCompatActivity {
     private void login() {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Mohon Tunggu...");
-        //progressDialog.show();
+
 
         bmasuk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,6 +110,8 @@ public class LoginActivity extends AppCompatActivity {
                 final String username = edusername.getText().toString().trim();
                 final String pass = edpassword.getText().toString().trim();
                 final String perusahaan = edid_perusahaan.getText().toString().trim();
+                final User dian = new User();
+                progressDialog.show();
 
                 Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl(APIUrl.BASE_URL)
@@ -126,11 +128,12 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<Result> call, Response<Result> response) {
                         System.out.println(response.body());
-                        progressDialog.dismiss();
                         if (!response.body().getError()) {
+                            progressDialog.dismiss();
                             finish();
                             System.out.println("Berhasil");
-                            SharedPrefManager.getInstance(getApplicationContext()).userLogin(response.body().getUser());
+                            dian.setNama(username);
+                            SharedPrefManager.getInstance(getApplicationContext()).userLogin(dian);
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         } else {
                             progressDialog.dismiss();
@@ -142,6 +145,8 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<Result> call, Throwable t) {
                         progressDialog.dismiss();
+                        System.out.println("ini failure");
+                        System.out.println(pass);
                         Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
