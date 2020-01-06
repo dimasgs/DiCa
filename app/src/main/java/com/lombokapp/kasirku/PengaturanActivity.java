@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.lombokapp.kasirku.Model.Result;
+import com.lombokapp.kasirku.Model.User;
 import com.lombokapp.kasirku.adapter.SharedPrefManager;
 import com.lombokapp.kasirku.api.ApiService;
 import com.lombokapp.kasirku.api.APIUrl;
@@ -87,7 +88,39 @@ public class PengaturanActivity extends AppCompatActivity {
                     final EditText edwebsite = new EditText(PengaturanActivity.this);
                     final EditText ednohp_usaha = new EditText(PengaturanActivity.this);
 
-                    ednama_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getNama_p());
+                    final User dian = new User();
+                    final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
+                    final String id_perusahaan = user.getperusahaan();
+                    Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+                    ApiService service = retrofit.create(ApiService.class);
+                    Call<Result> call = service.viewusaha(
+                            id_perusahaan);
+                    call.enqueue(new Callback<Result>() {
+                        @Override
+                        public void onResponse(Call<Result> call, Response<Result> response) {
+                            if (!response.body().getError()){
+                                System.out.println(user.getperusahaan());
+                                Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
+                            }else {
+                                System.out.println("gagal");
+                                dian.setPerusahaan(id_perusahaan);
+                                System.out.println(id_perusahaan);
+                                System.out.println(user.getperusahaan());
+                                System.out.println(response.body().getError());
+                                Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Result> call, Throwable t) {
+                            System.out.println("failure");
+                            Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                    ednama_usaha.setText(user.getNama_p());
                     TextInputLayout tilnama_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnama_usaha.addView(ednama_usaha);
                     tilnama_usaha.setHint("Nama Usaha");
@@ -137,55 +170,37 @@ public class PengaturanActivity extends AppCompatActivity {
                     adb.setPositiveButton("Simpan", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-//                            SQLiteDatabase db = dbo.getWritableDatabase();
-//                            db.beginTransaction();
-//                            try {
-//                                String nama_usaha = ednama_usaha.getText().toString();
-//                                String alamat = edalamat_usaha.getText().toString();
-//                                String nohp = ednohp_usaha.getText().toString();
-//                                String email = edemail_usaha.getText().toString();
-//                                String website = edwebsite.getText().toString();
-//                                db.execSQL("UPDATE perusahaan SET nama_usaha='" + nama_usaha + "', alamat_usaha='" + alamat + "'," +
-//                                        "nohp_usaha='" + nohp + "',email_usaha='" + email + "',website='" + website + "' WHERE id=1");
-//                                db.setTransactionSuccessful();
-//                                Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
-//                            } catch (Exception ex) {
-//                                ex.printStackTrace();
-//                            } finally {
-//                                db.endTransaction();
-//                                db.close();
-//                            }
-                            String nama_perusahaan = ednama_usaha.getText().toString();
-                            String alamat = edalamat_usaha.getText().toString();
-                            String email = edemail_usaha.getText().toString();
-                            String website = edwebsite.getText().toString();
-                            String no_hp = ednohp_usaha.getText().toString();
-                            Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
-                                    .addConverterFactory(GsonConverterFactory.create())
-                                    .build();
-                            ApiService service = retrofit.create(ApiService.class);
-                            Call<Result> call = service.updateUsaha(
-                                    nama_perusahaan,
-                                    alamat,
-                                    email,
-                                    website,
-                                    no_hp);
-                            call.enqueue(new Callback<Result>() {
-                                @Override
-                                public void onResponse(Call<Result> call, Response<Result> response) {
-                                    System.out.println(response.body().getUsername());
-                                    if (!response.body().getError()){
-                                        Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
-                                    }else {
-                                        Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
-                                    }
-                                }
-
-                                @Override
-                                public void onFailure(Call<Result> call, Throwable t) {
-                                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-                                }
-                            });
+//                            String nama_perusahaan = ednama_usaha.getText().toString();
+//                            String alamat = edalamat_usaha.getText().toString();
+//                            String email = edemail_usaha.getText().toString();
+//                            String website = edwebsite.getText().toString();
+//                            String no_hp = ednohp_usaha.getText().toString();
+//                            Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
+//                                    .addConverterFactory(GsonConverterFactory.create())
+//                                    .build();
+//                            ApiService service = retrofit.create(ApiService.class);
+//                            Call<Result> call = service.updateUsaha(
+//                                    nama_perusahaan,
+//                                    alamat,
+//                                    email,
+//                                    website,
+//                                    no_hp);
+//                            call.enqueue(new Callback<Result>() {
+//                                @Override
+//                                public void onResponse(Call<Result> call, Response<Result> response) {
+//                                    System.out.println(response.body().getUsername());
+//                                    if (!response.body().getError()){
+//                                        Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
+//                                    }else {
+//                                        Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+//                                    }
+//                                }
+//
+//                                @Override
+//                                public void onFailure(Call<Result> call, Throwable t) {
+//                                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+//                                }
+//                            });
                         }
                     });
 
@@ -267,7 +282,7 @@ public class PengaturanActivity extends AppCompatActivity {
                                 Toast.makeText(PengaturanActivity.this, "Printer Siap Dipakai", Toast.LENGTH_SHORT).show();
                             } else {
                                 printcount = 2;
-                                String textprint = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. \n\n\n";
+                                String textprint = "Aplikasi Kasirku Versi 1.0.0 By Digital Geek Indonesia \n\n\n";
                                 byte[] bt = textprint.getBytes();
                                 Toast.makeText(PengaturanActivity.this, String.valueOf(bt.length), Toast.LENGTH_SHORT).show();
                                 Bluetoothprint bprint = new Bluetoothprint(PengaturanActivity.this);
@@ -382,6 +397,7 @@ public class PengaturanActivity extends AppCompatActivity {
             }
         });
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -4,18 +4,18 @@ public class User {
     private String perusahaan;
     private String nama_p;
     private String alamat;
-    private int no_hp;
+    private String no_hp;
     private String email;
     private String website;
     private String nama;
-   // private String pass;
+    private String pass;
 
-    public User (String nama_p, String alamat, int no_hp,String website){
+    public User (String nama_p, String alamat, String email, String website, String no_hp){
         this.nama_p = nama_p;
         this.alamat = alamat;
-        this.no_hp = no_hp;
+        this.email = email;
         this.website = website;
-        //this.pass = pass;
+        this.no_hp = no_hp;
     }
 
     public User(String perusahaan, String nama, String email) {
@@ -23,6 +23,11 @@ public class User {
         this.nama = nama;
         this.email = email;
     }
+
+    public User() {
+
+    }
+
 //
 //    public  User (int id, String nama, String email, String password){
 //        this.id = id;
@@ -38,13 +43,16 @@ public class User {
     public String getNama_p() {
         return nama_p;
     }
+    public void setNama_p(String nama_p){
+        this.nama_p = nama_p;
+    }
 
 
     public String getAlamat(){
         return alamat;
     }
 
-    public int getNo_hp(){
+    public String getNo_hp(){
         return no_hp;
     }
 
@@ -56,14 +64,13 @@ public class User {
         return nama;
     }
 
-    public String getEmail() {
-        return email;
+    public void setNama(String nama){
+        this.nama = nama;
     }
 
 
-
-//    public String getPass() {
-//        return pass;
-//    }
+    public String getEmail() {
+        return email;
+    }
 
 }
