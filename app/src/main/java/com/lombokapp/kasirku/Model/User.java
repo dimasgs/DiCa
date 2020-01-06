@@ -18,7 +18,8 @@ public class User {
         this.no_hp = no_hp;
     }
 
-    public User(String perusahaan, String nama, String email) {
+    public User(String nama_p, String perusahaan, String nama, String email) {
+        this.nama_p=nama_p;
         this.perusahaan = perusahaan;
         this.nama = nama;
         this.email = email;
@@ -28,22 +29,18 @@ public class User {
 
     }
 
-//
-//    public  User (int id, String nama, String email, String password){
-//        this.id = id;
-//        this.nama = nama;
-//        this.email = email;
-//        this.password = password;
-//    }
 
     public String getperusahaan() {
         return perusahaan;
     }
+    public void setPerusahaan(String perusahaan){
+        this.perusahaan = perusahaan;
+    }
 
-    public String getNama_p() {
+    public String getNamaPerusahaan() {
         return nama_p;
     }
-    public void setNama_p(String nama_p){
+    public void setNamaPerusahaan(String nama_p){
         this.nama_p = nama_p;
     }
 
@@ -51,6 +48,10 @@ public class User {
     public String getAlamat(){
         return alamat;
     }
+    public void setAlamat(){
+        this.alamat=alamat;
+    }
+
 
     public String getNo_hp(){
         return no_hp;
@@ -59,11 +60,13 @@ public class User {
     public String getWebsite(){
         return website;
     }
+    public void setWebsite(){
+        this.website = website;
+    }
 
     public String getNama(){
         return nama;
     }
-
     public void setNama(String nama){
         this.nama = nama;
     }
@@ -71,6 +74,10 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+    public void setEmail(String email){
+        this.email = email;
+
     }
 
 }
