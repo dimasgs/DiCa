@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.lombokapp.kasirku.Model.Perusahaan;
 import com.lombokapp.kasirku.Model.Result;
 import com.lombokapp.kasirku.Model.User;
 import com.lombokapp.kasirku.adapter.SharedPrefManager;
@@ -91,56 +92,69 @@ public class PengaturanActivity extends AppCompatActivity {
                     final User dian = new User();
                     final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
                     final String id_perusahaan = user.getperusahaan();
+                    final String nama_perusahaan = user.getNamaPerusahaan();
+                    final String alamat = user.getAlamat();
+                    final String email = user.getEmail();
+                    final String website = user.getWebsite();
+                    final String no_hp = user.getNo_hp();
                     Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
                             .addConverterFactory(GsonConverterFactory.create())
                             .build();
                     ApiService service = retrofit.create(ApiService.class);
-                    Call<Result> call = service.viewusaha(
-                            id_perusahaan);
-                    call.enqueue(new Callback<Result>() {
+                    Call<Perusahaan> call = service.updateUsaha(
+                            id_perusahaan,
+                            nama_perusahaan,
+                            alamat,
+                            email,
+                            website,
+                            no_hp
+                            );
+                    call.enqueue(new Callback<Perusahaan>() {
                         @Override
-                        public void onResponse(Call<Result> call, Response<Result> response) {
+                        public void onResponse(Call<Perusahaan> call, Response<Perusahaan> response) {
                             if (!response.body().getError()){
-                                System.out.println(user.getperusahaan());
+                                dian.setNamaPerusahaan(response.body().getNamaPerusahaan());
+                                System.out.println("berhasil pengaturan");
+                                System.out.println(response.body().getNamaPerusahaan());
+                                SharedPrefManager.getInstance(getApplicationContext()).Data(dian);
+                                System.out.println(nama_perusahaan);
                                 Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
                             }else {
-                                System.out.println("gagal");
-                                dian.setPerusahaan(id_perusahaan);
-                                System.out.println(id_perusahaan);
-                                System.out.println(user.getperusahaan());
+                                System.out.println("gagal pengaturan");
                                 System.out.println(response.body().getError());
                                 Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<Result> call, Throwable t) {
+                        public void onFailure(Call<Perusahaan> call, Throwable t) {
                             System.out.println("failure");
                             Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
 
-                    ednama_usaha.setText(user.getNama_p());
+                    //ednama_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getUser().getNamaPerusahaan());
+                    ednama_usaha.setText(user.getNamaPerusahaan());
                     TextInputLayout tilnama_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnama_usaha.addView(ednama_usaha);
                     tilnama_usaha.setHint("Nama Usaha");
 
-                    edalamat_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getAlamat());
+
                     TextInputLayout tilalamat_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilalamat_usaha.addView(edalamat_usaha);
                     tilalamat_usaha.setHint("Alamat");
 
-                    ednohp_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getNo_hp());
+
                     TextInputLayout tilnohp_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnohp_usaha.addView(ednohp_usaha);
                     tilnohp_usaha.setHint("No Handphone");
 
-                    edwebsite.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getWebsite());
+
                     TextInputLayout tilweb = new TextInputLayout(PengaturanActivity.this);
                     tilweb.addView(edwebsite);
                     tilweb.setHint("Website");
 
-                    edemail_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getData().getEmail());
+
                     TextInputLayout tilemail = new TextInputLayout(PengaturanActivity.this);
                     tilemail.addView(edemail_usaha);
                     tilemail.setHint("Email");
