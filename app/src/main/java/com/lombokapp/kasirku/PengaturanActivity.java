@@ -101,13 +101,8 @@ public class PengaturanActivity extends AppCompatActivity {
                             .addConverterFactory(GsonConverterFactory.create())
                             .build();
                     ApiService service = retrofit.create(ApiService.class);
-                    Call<Perusahaan> call = service.updateUsaha(
-                            id_perusahaan,
-                            nama_perusahaan,
-                            alamat,
-                            email,
-                            website,
-                            no_hp
+                    Call<Perusahaan> call = service.viewusaha(
+                            id_perusahaan
                             );
                     call.enqueue(new Callback<Perusahaan>() {
                         @Override
@@ -115,9 +110,11 @@ public class PengaturanActivity extends AppCompatActivity {
                             if (!response.body().getError()){
                                 dian.setNamaPerusahaan(response.body().getNamaPerusahaan());
                                 System.out.println("berhasil pengaturan");
-                                System.out.println(response.body().getNamaPerusahaan());
-                                SharedPrefManager.getInstance(getApplicationContext()).Data(dian);
-                                System.out.println(nama_perusahaan);
+                                System.out.println(dian.getNamaPerusahaan());
+                                dian.setAlamat(response.body().getAlamat());
+                                System.out.println(dian.getAlamat());
+                                System.out.println(response.body().getEmail());
+                                System.out.println(response.body().getWebsite());
                                 Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
                             }else {
                                 System.out.println("gagal pengaturan");
@@ -134,7 +131,7 @@ public class PengaturanActivity extends AppCompatActivity {
                     });
 
                     //ednama_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getUser().getNamaPerusahaan());
-                    ednama_usaha.setText(user.getNamaPerusahaan());
+                    ednama_usaha.setText(dian.getNamaPerusahaan());
                     TextInputLayout tilnama_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnama_usaha.addView(ednama_usaha);
                     tilnama_usaha.setHint("Nama Usaha");
