@@ -36,9 +36,9 @@ public class SharedPrefManager {
     public void userLogin(User user) {
         SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        //editor.putString(KEY_USER_ID, user.getperusahaan());
+        editor.putString(KEY_USER_ID, user.getperusahaan());
         editor.putString(KEY_USER_NAME, user.getNama());
-        //editor.putString(KEY_USER_EMAIL, user.getEmail());
+        editor.putString(KEY_USER_EMAIL, user.getEmail());
         editor.apply();
     }
 
@@ -66,16 +66,16 @@ public class SharedPrefManager {
         mCtx.startActivity(new Intent(mCtx, LoginActivity.class));
     }
 
-//    public User getData() {
-//        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-//        return new User(
-//                sharedPreferences.getString(KEY_USER_NAME_PERUSAHAAN, null),
-//                sharedPreferences.getString(KEY_USER_ALAMAT, null),
-//                sharedPreferences.getInt(KEY_USER_HP, 0),
-//                sharedPreferences.getString(KEY_USER_WEBSITE, null)
-//
-//        );
-//    }
+    public User getData() {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        return new User(
+                sharedPreferences.getString(KEY_USER_NAME_PERUSAHAAN, null),
+                sharedPreferences.getString(KEY_USER_ALAMAT, null),
+                sharedPreferences.getString(KEY_USER_EMAIL,null),
+                sharedPreferences.getString(KEY_USER_WEBSITE, null),
+                sharedPreferences.getString(KEY_USER_HP, null)
+        );
+    }
     public User getUser() {
         SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         return new User(
@@ -84,4 +84,5 @@ public class SharedPrefManager {
                 sharedPreferences.getString(KEY_USER_EMAIL, null)
         );
     }
+
 }
