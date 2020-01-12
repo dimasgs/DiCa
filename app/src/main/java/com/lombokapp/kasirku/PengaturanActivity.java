@@ -1,5 +1,6 @@
 package com.lombokapp.kasirku;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
@@ -21,6 +22,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.lombokapp.kasirku.Model.Login;
+import com.lombokapp.kasirku.Model.Logout;
 import com.lombokapp.kasirku.Model.Perusahaan;
 import com.lombokapp.kasirku.Model.Result;
 import com.lombokapp.kasirku.Model.User;
@@ -33,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import okhttp3.Cache;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -40,7 +44,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class PengaturanActivity extends AppCompatActivity {
-
+    public User dian = new User();
     ListView lvdata;
     Dblocalhelper dbo;
     int printcount = 1;
@@ -63,24 +67,25 @@ public class PengaturanActivity extends AppCompatActivity {
 
 
     private void loaddatalist() {
-
         List<Listviewglobaladapter.listglobalmodel> ls = new ArrayList<>();
         ls.add(new Listviewglobaladapter.listglobalmodel("0", "Profil Usaha", "Deskripsikan informasi usaha sebagai info untuk pelanggan anda"));
         ls.add(new Listviewglobaladapter.listglobalmodel("1", "Profile Pengguna", "Atur siapa saja yang boleh menggunakan aplikasi beserta hak aksesnya"));
-        ls.add(new Listviewglobaladapter.listglobalmodel("2", "Atur Printer POS", "Atur printer yang anda gunakan untuk mencetak Struck, aplikasi hanya bisa menggunakan printer yag memiliki koneksi bluetooth, Printer Saat ini "+sp.getString("default_printer","none")));
+        ls.add(new Listviewglobaladapter.listglobalmodel("2", "Atur Printer POS", "Atur printer yang anda gunakan untuk mencetak Struck, aplikasi hanya bisa menggunakan printer yang memiliki koneksi bluetooth, Printer Saat ini "+sp.getString("default_printer","none")));
         ls.add(new Listviewglobaladapter.listglobalmodel("3", "Test Koneksi Printer", "Cek apakah printer anda sudah terkoneksi dan berfungsi dengan baik"));
-        ls.add(new Listviewglobaladapter.listglobalmodel("4", "Backup", "Cadangkan data anda untuk mengantisipasi kemungkinan data terhapus, default backup file ada pada folder kasirkubackup di internal storage anda"));
-        ls.add(new Listviewglobaladapter.listglobalmodel("5", "Restore", "Pulihkan data yang sudah anda cadangkan, default restore file harus ada di dalam folder kasirkubackup di internal storage anda, pastikan data yang ingin anda pulihkan berada didalam folder tersebut "));
-        ls.add(new Listviewglobaladapter.listglobalmodel("6", "Tentang Aplikasi", "Aplikasi Kasirku V1.0 \nPengembang : Digital Geek Indonesia \nWebsite : digee.id"));
+        ls.add(new Listviewglobaladapter.listglobalmodel("4", "Backup", "Cadangkan data anda untuk mengantisipasi kemungkinan data terhapus, default backup file ada pada folder dicabackup di internal storage anda"));
+        ls.add(new Listviewglobaladapter.listglobalmodel("5", "Restore", "Pulihkan data yang sudah anda cadangkan, default restore file harus ada di dalam folder dicabackup di internal storage anda, pastikan data yang ingin anda pulihkan berada didalam folder tersebut "));
+        ls.add(new Listviewglobaladapter.listglobalmodel("6", "Tentang Aplikasi", "DiCa (Digital Cashier) V1.0 \nPengembang : Digital Geek Indonesia \nWebsite : digitalgeekid.com"));
+        ls.add(new Listviewglobaladapter.listglobalmodel("7", "Keluar Aplikasi",""));
         final ArrayAdapter<String> adapter = new Listviewglobaladapter(this, ls);
         lvdata.setAdapter(adapter);
 
         lvdata.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, final View view, int position, final long id) {
+
                 if (position == 0) {
-                    AlertDialog.Builder adb = new AlertDialog.Builder(PengaturanActivity.this);
+                    final AlertDialog.Builder adb = new AlertDialog.Builder(PengaturanActivity.this);
                     adb.setTitle("Informasi Perusahaan");
                     adb.setCancelable(false);
                     final EditText ednama_usaha = new EditText(PengaturanActivity.this);
@@ -89,14 +94,10 @@ public class PengaturanActivity extends AppCompatActivity {
                     final EditText edwebsite = new EditText(PengaturanActivity.this);
                     final EditText ednohp_usaha = new EditText(PengaturanActivity.this);
 
+
                     final User dian = new User();
                     final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
                     final String id_perusahaan = user.getperusahaan();
-                    final String nama_perusahaan = user.getNamaPerusahaan();
-                    final String alamat = user.getAlamat();
-                    final String email = user.getEmail();
-                    final String website = user.getWebsite();
-                    final String no_hp = user.getNo_hp();
                     Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
                             .addConverterFactory(GsonConverterFactory.create())
                             .build();
@@ -108,14 +109,46 @@ public class PengaturanActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<Perusahaan> call, Response<Perusahaan> response) {
                             if (!response.body().getError()){
+                                //set get
                                 dian.setNamaPerusahaan(response.body().getNamaPerusahaan());
-                                System.out.println("berhasil pengaturan");
-                                System.out.println(dian.getNamaPerusahaan());
                                 dian.setAlamat(response.body().getAlamat());
+                                dian.setNoHp(response.body().getNoHp());
+                                dian.setEmail(response.body().getEmail());
+                                dian.setWebsite(response.body().getWebsite());
+                                System.out.println("berhasil pengaturan");
+                                //sout
+                                System.out.println(dian.getNamaPerusahaan());
                                 System.out.println(dian.getAlamat());
-                                System.out.println(response.body().getEmail());
-                                System.out.println(response.body().getWebsite());
-                                Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
+                                System.out.println(dian.getNoHp());
+                                System.out.println(dian.getEmail());
+                                System.out.println(dian.getWebsite());
+
+                                ednama_usaha.setText(dian.getNamaPerusahaan());
+                                ednama_usaha.setFocusable(false);
+                                ednama_usaha.setFocusableInTouchMode(false);
+                                ednama_usaha.setClickable(false);
+
+                                edalamat_usaha.setText(dian.getAlamat());
+                                edalamat_usaha.setFocusable(false);
+                                edalamat_usaha.setFocusableInTouchMode(false);
+                                edalamat_usaha.setClickable(false);
+
+                                ednohp_usaha.setText(dian.getNoHp());
+                                ednohp_usaha.setFocusable(false);
+                                ednohp_usaha.setFocusableInTouchMode(false);
+                                ednohp_usaha.setClickable(false);
+
+                                edemail_usaha.setText(dian.getEmail());
+                                edemail_usaha.setFocusable(false);
+                                edemail_usaha.setFocusableInTouchMode(false);
+                                edemail_usaha.setClickable(false);
+
+                                edwebsite.setText(dian.getWebsite());
+                                edwebsite.setFocusable(false);
+                                edwebsite.setFocusableInTouchMode(false);
+                                edwebsite.setClickable(false);
+                                SharedPrefManager.getInstance(getApplicationContext()).userLogin(dian);
+                                //Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
                             }else {
                                 System.out.println("gagal pengaturan");
                                 System.out.println(response.body().getError());
@@ -130,8 +163,6 @@ public class PengaturanActivity extends AppCompatActivity {
                         }
                     });
 
-                    //ednama_usaha.setText(SharedPrefManager.getInstance(getApplicationContext()).getUser().getNamaPerusahaan());
-                    ednama_usaha.setText(dian.getNamaPerusahaan());
                     TextInputLayout tilnama_usaha = new TextInputLayout(PengaturanActivity.this);
                     tilnama_usaha.addView(ednama_usaha);
                     tilnama_usaha.setHint("Nama Usaha");
@@ -166,55 +197,6 @@ public class PengaturanActivity extends AppCompatActivity {
                     ll.addView(tilweb);
                     adb.setView(ll);
 
-
-//                    SQLiteDatabase db = dbo.getReadableDatabase();
-//                    Cursor c = db.rawQuery("SELECT nama_usaha,alamat_usaha,nohp_usaha,email_usaha,website FROM perusahaan WHERE id=1", null);
-//                    if (c.moveToFirst()) {
-
-
-
-//                    }
-//                    c.close();
-//                    db.close();
-
-
-                    adb.setPositiveButton("Simpan", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-//                            String nama_perusahaan = ednama_usaha.getText().toString();
-//                            String alamat = edalamat_usaha.getText().toString();
-//                            String email = edemail_usaha.getText().toString();
-//                            String website = edwebsite.getText().toString();
-//                            String no_hp = ednohp_usaha.getText().toString();
-//                            Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
-//                                    .addConverterFactory(GsonConverterFactory.create())
-//                                    .build();
-//                            ApiService service = retrofit.create(ApiService.class);
-//                            Call<Result> call = service.updateUsaha(
-//                                    nama_perusahaan,
-//                                    alamat,
-//                                    email,
-//                                    website,
-//                                    no_hp);
-//                            call.enqueue(new Callback<Result>() {
-//                                @Override
-//                                public void onResponse(Call<Result> call, Response<Result> response) {
-//                                    System.out.println(response.body().getUsername());
-//                                    if (!response.body().getError()){
-//                                        Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
-//                                    }else {
-//                                        Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
-//                                    }
-//                                }
-//
-//                                @Override
-//                                public void onFailure(Call<Result> call, Throwable t) {
-//                                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-//                                }
-//                            });
-                        }
-                    });
-
                     adb.setNegativeButton("Tutup", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -223,15 +205,12 @@ public class PengaturanActivity extends AppCompatActivity {
                     });
 
                     adb.show();
-
                 } else if (position == 1) {
-                    if (sp.getInt("read_user",0) == 1) {
-                        Intent in = new Intent(PengaturanActivity.this, PenggunaActivity.class);
+                        Intent in = new Intent(PengaturanActivity.this, Pengguna.class);
                         startActivity(in);
-
-                    } else {
-                        Toast.makeText(PengaturanActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
-                    }
+//                        System.out.println("Kamu Admin");
+//                    } else {
+//                    }
 
                 } else if (position == 2) {
                     final BluetoothAdapter btadapter = BluetoothAdapter.getDefaultAdapter();
@@ -293,7 +272,7 @@ public class PengaturanActivity extends AppCompatActivity {
                                 Toast.makeText(PengaturanActivity.this, "Printer Siap Dipakai", Toast.LENGTH_SHORT).show();
                             } else {
                                 printcount = 2;
-                                String textprint = "Aplikasi Kasirku Versi 1.0.0 By Digital Geek Indonesia \n\n\n";
+                                String textprint = "Aplikasi DiCa (Digital Cashier)\nVersi 1.0\nBy Digital Geek Indonesia \n\n\n";
                                 byte[] bt = textprint.getBytes();
                                 Toast.makeText(PengaturanActivity.this, String.valueOf(bt.length), Toast.LENGTH_SHORT).show();
                                 Bluetoothprint bprint = new Bluetoothprint(PengaturanActivity.this);
@@ -310,14 +289,14 @@ public class PengaturanActivity extends AppCompatActivity {
                     AlertDialog.Builder adb = new AlertDialog.Builder(PengaturanActivity.this);
                     adb.setCancelable(false);
                     adb.setTitle("Informasi");
-                    adb.setMessage("Data yang dibackup akan dipindah otomatis ke dalam folder kasirkubackup di internal storage anda, " +
+                    adb.setMessage("Data yang dibackup akan dipindah otomatis ke dalam folder dicabackup di internal storage anda, " +
                             "ingat untuk tidak menghapus folder ini," +
                             "data backup bisa anda pindahkan ke Flashdisk, SDCARD atau sejenisnya dengan mengcopy file tersebut, " +
-                            "dan untuk merestorenya anda cukup mengcopy file backupnnya ke dalam folder kasirkubackup ");
+                            "dan untuk merestorenya anda cukup mengcopy file backupnnya ke dalam folder dicabackup ");
                     adb.setPositiveButton("Backup", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            File kasiroffbackup = new File(Environment.getExternalStorageDirectory(), "kasirkubackup");
+                            File kasiroffbackup = new File(Environment.getExternalStorageDirectory(), "dicabackup");
                             if (ActivityCompat.checkSelfPermission(PengaturanActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
                                     != PackageManager.PERMISSION_GRANTED &&
                                     ActivityCompat.checkSelfPermission(PengaturanActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -336,10 +315,10 @@ public class PengaturanActivity extends AppCompatActivity {
                                 kasiroffbackup.mkdirs();
                             }
 
-                            File lokasidb = getDatabasePath("kasirku.db");
-                            File lokasibackupdb = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/kasirku.db");
-                            File lokasiimage = new File(getFilesDir(), "kasirkuimage");
-                            File lokasibackupimage = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/kasirkuimage");
+                            File lokasidb = getDatabasePath("dica.db");
+                            File lokasibackupdb = new File(Environment.getExternalStorageDirectory(), "dicabackup/dica.db");
+                            File lokasiimage = new File(getFilesDir(), "dicaimage");
+                            File lokasibackupimage = new File(Environment.getExternalStorageDirectory(), "dicabackup/dicaimage");
                             try {
                                 Oneforallfunc.copyfile(lokasidb, lokasibackupdb);
                                 Oneforallfunc.copyfile(lokasiimage, lokasibackupimage);
@@ -363,10 +342,10 @@ public class PengaturanActivity extends AppCompatActivity {
                     AlertDialog.Builder adb = new AlertDialog.Builder(PengaturanActivity.this);
                     adb.setCancelable(false);
                     adb.setTitle("Informasi");
-                    adb.setMessage("Pastikan folder kasirkubackup tidak terhapus di internal storage anda, jika tidak ada atau terhapus, " +
+                    adb.setMessage("Pastikan folder dicabackup tidak terhapus di internal storage anda, jika tidak ada atau terhapus, " +
                             "anda bisa membuatnya dengan file explorer atau dengan melakukan backup pada pengaturan, " +
                             "dan pastikan data yang ingin anda restore berada didalam folder tersebut, jika datanya sudah dipindah ke Flashdisk, SDCARD atau sejenisnya" +
-                            " maka copy dulu datanya ke dalam folder kasirkubackup sebelum melakukan restore");
+                            " maka copy dulu datanya ke dalam folder dicabackup sebelum melakukan restore");
                     adb.setPositiveButton("Restore", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -381,13 +360,13 @@ public class PengaturanActivity extends AppCompatActivity {
                                 return;
                             }
 
-                            File lokasidb = getDatabasePath("kasirku.db");
-                            File lokasibackupdb = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/kasirku.db");
-                            File lokasiimage = new File(getFilesDir(), "kasirkuimage");
-                            File lokasibackupimage = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/kasirkuimage");
+                            File lokasidb = getDatabasePath("dica.db");
+                            File lokasibackupdb = new File(Environment.getExternalStorageDirectory(), "dicabackup/dica.db");
+//                            File lokasiimage = new File(getFilesDir(), "dicaimage");
+//                            File lokasibackupimage = new File(Environment.getExternalStorageDirectory(), "dicabackup/dicaimage");
                             try {
                                 Oneforallfunc.copyfile(lokasibackupdb, lokasidb);
-                                Oneforallfunc.copyfile(lokasibackupimage, lokasiimage);
+                                //Oneforallfunc.copyfile(lokasibackupimage, lokasiimage);
                                 Toast.makeText(PengaturanActivity.this, "Data Berhasil Di Restore", Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
                                 Toast.makeText(PengaturanActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -404,6 +383,58 @@ public class PengaturanActivity extends AppCompatActivity {
 
                     adb.show();
 
+                } else if (position==7){
+                    final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
+                    final String iduser = user.getIduser();
+                    AlertDialog.Builder adb=new AlertDialog.Builder(PengaturanActivity.this);
+                    adb.setTitle("Konfirmasi");
+                    adb.setMessage("Anda ingin keluar dari aplikasi ?");
+                    adb.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Retrofit retrofit = new Retrofit.Builder()
+                                    .baseUrl(APIUrl.BASE_URL)
+                                    .addConverterFactory(GsonConverterFactory.create())
+                                    .build();
+                            ApiService apiService = retrofit.create(ApiService.class);
+                            Call<Logout> call = apiService.userLogout(
+                                    iduser
+                            );
+                            call.enqueue(new Callback<Logout>() {
+                                @Override
+                                public void onResponse(Call<Logout> call, Response<Logout> response) {
+                                    if (!response.body().getError()){
+//                                        dian.setIduser(response.body().getId());
+                                        System.out.println("ini id di logout " +iduser);
+                                        System.out.println("ini id juga : " + user.getIduser());
+                                        Intent in = new Intent(PengaturanActivity.this, LoginActivity.class);
+                                        startActivity(in);
+
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+                                        System.out.println("ini error di logout "+response.body().getError());
+                                        System.out.println("ini id di logout, else " +iduser);
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<Logout> call, Throwable t) {
+                                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+                            });
+
+                        }
+                    });
+
+                    adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+
+                    adb.show();
                 }
             }
         });

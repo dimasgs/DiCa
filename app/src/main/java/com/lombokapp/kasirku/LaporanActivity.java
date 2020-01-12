@@ -27,7 +27,7 @@ public class LaporanActivity extends AppCompatActivity {
     private void loaddatalist(){
         List<Listviewglobaladapter.listglobalmodel> ls=new ArrayList<>();
         ls.add(new Listviewglobaladapter.listglobalmodel("0","Laporan Penjualan","Lihat hasil penjualan anda, tentukan sendiri periode penjualan yang ingin anda lihat"));
-        ls.add(new Listviewglobaladapter.listglobalmodel("1","Laporan Pembelian","Lihat hasil pembelian anda, tentukan sendiri periode pembelian yang ingin anda lihat"));
+        //ls.add(new Listviewglobaladapter.listglobalmodel("1","Laporan Pembelian","Lihat hasil pembelian anda, tentukan sendiri periode pembelian yang ingin anda lihat"));
         ls.add(new Listviewglobaladapter.listglobalmodel("2","Laporan Stok Barang","Lihat stok terakhir persediaan anda"));
         ls.add(new Listviewglobaladapter.listglobalmodel("3","Ranking Penjualan Barang","Lihat ranking penjualan barang anda, untuk mengetahui barang terlaris"));
         ArrayAdapter<String> adapter=new Listviewglobaladapter(this,ls);

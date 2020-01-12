@@ -3,24 +3,19 @@ package com.lombokapp.kasirku.Model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Result {
-
+public class ListPengguna {
     @SerializedName("success")
     @Expose
     private Integer success;
-
+    @SerializedName("id_user")
+    @Expose
+    private String idUser;
     @SerializedName("username")
     @Expose
-    private User username;
-
+    private String username;
     @SerializedName("pass")
     @Expose
     private String pass;
-
-    @SerializedName("status")
-    @Expose
-    private String status;
-
     @SerializedName("message")
     @Expose
     private String message;
@@ -36,11 +31,19 @@ public class Result {
         this.success = success;
     }
 
-    public User getUsername() {
+    public String getIdUser() {
+        return idUser;
+    }
+
+    public void setIdUser(String idUser) {
+        this.idUser = idUser;
+    }
+
+    public String getUsername() {
         return username;
     }
 
-    public void setUsername(User username) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
@@ -50,14 +53,6 @@ public class Result {
 
     public void setPass(String pass) {
         this.pass = pass;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public String getMessage() {

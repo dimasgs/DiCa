@@ -80,7 +80,7 @@ public class PembelianActivity extends AppCompatActivity {
         fbadd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sp.getInt("write_pembelian",0)==1) {
+                if(sp.getInt("write_pembelian",1)==1) {
                     Intent in=new Intent(PembelianActivity.this,TambahPembelianActivity.class);
                     startActivity(in);
                 }else{

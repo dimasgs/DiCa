@@ -81,12 +81,12 @@ public class PenjualanActivity extends AppCompatActivity {
         fbadd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sp.getInt("write_penjualan",0)==1) {
+//                if(sp.getInt("write_penjualan",0)==1) {
                     Intent in=new Intent(PenjualanActivity.this,TambahPenjualanActivity.class);
                     startActivity(in);
-                }else{
-                    Toast.makeText(PenjualanActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
-                }
+  //              }else{
+    //                Toast.makeText(PenjualanActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
+      //          }
             }
         });
     }
@@ -254,22 +254,23 @@ public class PenjualanActivity extends AppCompatActivity {
                                                 try {
 
                                                     Cursor c=db.rawQuery("SELECT kode_barang,jumlah FROM penjualan_detail WHERE kode_penjualan_master='"+model.get(position).getKode_penjualan_master()+"'",null);
-                                                    while (c.moveToNext()){
-                                                        Cursor ccek=db.rawQuery("SELECT tipe_barang FROM persediaan WHERE kode_barang='"+c.getString(0)+"'",null);
-                                                        if(ccek.moveToFirst()){
-                                                            if(ccek.getInt(0)==1){
-                                                                String kode_barang_racik =  c.getString(0);
-                                                                Cursor ccekup = db.rawQuery("SELECT kode_barang_isi,jumlah_isi FROM racikan WHERE kode_barang_racik='" + kode_barang_racik + "'", null);
-                                                                while (ccekup.moveToNext()) {
-                                                                    db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang+" + (ccekup.getDouble(1)*c.getDouble(1)) + " " +
-                                                                            "WHERE kode_barang='" + ccekup.getString(0) + "' ");
-                                                                }
-                                                            }else{
-                                                                db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang+" + c.getDouble(1) + " " +
-                                                                        "WHERE kode_barang='" + c.getString(0) + "' ");
-                                                            }
-                                                        }
-                                                    }
+//                                                    while (c.moveToNext()){
+//                                                        Cursor ccek=db.rawQuery("SELECT tipe_barang FROM persediaan WHERE kode_barang='"+c.getString(0)+"'",null);
+//                                                        if(ccek.moveToFirst()){
+//                                                            if(ccek.getInt(0)==1){
+//                                                                String kode_barang_racik =  c.getString(0);
+//                                                                Cursor ccekup = db.rawQuery("SELECT kode_barang_isi,jumlah_isi FROM racikan WHERE kode_barang_racik='" + kode_barang_racik + "'", null);
+//                                                                while (ccekup.moveToNext()) {
+//                                                                    db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang+" + (ccekup.getDouble(1)*c.getDouble(1)) + " " +
+//                                                                            "WHERE kode_barang='" + ccekup.getString(0) + "' ");
+//                                                                }
+//                                                            }else{
+//                                                                }
+//                                                            db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang+" + c.getDouble(1) + " " +
+//                                                                    "WHERE kode_barang='" + c.getString(0) + "' ");
+//
+//                                                        }
+//                                                    }
                                                     db.execSQL("DELETE FROM penjualan_detail  WHERE kode_penjualan_master='"+model.get(position).getKode_penjualan_master()+"'");
                                                     db.execSQL("DELETE FROM penjualan_master WHERE kode_penjualan_master='"+model.get(position).getKode_penjualan_master()+"'");
                                                     db.setTransactionSuccessful();

@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lombokapp.kasirku.Model.User;
 import com.lombokapp.kasirku.adapter.SharedPrefManager;
 
 import java.io.File;
@@ -26,8 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-
-    CardView cpersediaan, cpembelian, cpenjualan, claporan, cpengaturan,ckeluar;
+     CardView cpersediaan, cpembelian, cpenjualan, claporan, cpengaturan;
     TextView ltotal_penjualan, ltanggal, lnama_pengguna;
     ImageView breload;
     Dblocalhelper dbo;
@@ -36,14 +36,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         cpersediaan = findViewById(R.id.cpersediaan);
-        cpembelian = findViewById(R.id.cpembelian);
+//        cpembelian = findViewById(R.id.cpembelian);
         cpenjualan = findViewById(R.id.cpenjualan);
         claporan = findViewById(R.id.claporan);
         cpengaturan = findViewById(R.id.cpengaturan);
-        ckeluar = findViewById(R.id.ckeluar);
         ltotal_penjualan = findViewById(R.id.ltotal_penjualan);
         ltanggal = findViewById(R.id.ltanggal);
         lnama_pengguna = findViewById(R.id.lnama_pengguna);
@@ -51,52 +51,61 @@ public class MainActivity extends AppCompatActivity {
         sp=getApplicationContext().getSharedPreferences("config",0);
         dbo = new Dblocalhelper(this);
         loadpermission();
-        File internalstorage = new File(getFilesDir(), "kasirkuimage");
+        File internalstorage = new File(getFilesDir(), "dicaimage");
         if (!internalstorage.exists()) {
             internalstorage.mkdirs();
         }
-        File kasiroffbackup=new File(Environment.getExternalStorageDirectory(),"kasirkubackup");
+        File kasiroffbackup=new File(Environment.getExternalStorageDirectory(),"dicabackup");
         if(!kasiroffbackup.exists()){
             kasiroffbackup.mkdirs();
         }
 
-        File laporandirectori=new File(Environment.getExternalStorageDirectory(),"kasirkubackup/laporan");
+        File laporandirectori=new File(Environment.getExternalStorageDirectory(),"dicabackup/laporan");
         if(!laporandirectori.exists()){
             laporandirectori.mkdirs();
         }
         showpersediaan();
-        showpembelian();
+        //showpembelian();
         showpenjualan();
         showlaporan();
         reload();
         showpengaturan();
         loadtotalpenjualan();
-        keluar();
-        File fldb=getDatabasePath("kasirku.db");
-        File flimage=new File(getFilesDir(),"kasirkuimage");
-        //lnama_pengguna.setText(sp.getString("username","none"));
-        lnama_pengguna.setText(SharedPrefManager.getInstance(getApplicationContext()).getUser().getNama());
+//        keluar();
+        File fldb=getDatabasePath("dica.db");
+        File flimage=new File(getFilesDir(),"dicaimage");
+        //lnama_pengguna.setText(sp.getString("username","none"));editTextEmailPengirim.setText(user.getEmail());
+        lnama_pengguna.setText(user.getNama());
+        System.out.println("id di main : " +user.getIduser());
+        System.out.println("id perusahaan main : " +user.getperusahaan());
+        System.out.println("nama perusahaan di main : " +user.getNamaPerusahaan());
+        System.out.println("almat di main : " +user.getAlamat());
+        System.out.println("no hp di main : " +user.getNoHp());
+        System.out.println("email di main : " +user.getEmail());
+        System.out.println("website di main : " +user.getWebsite());
+        System.out.println("nama di main : " +user.getNama());
+        System.out.println("status di main : " +user.getStatus());
 
     }
 
     private void loadpermission(){
         if (
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED  ||
-                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED  ||
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,
                             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             android.Manifest.permission.CAMERA,
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-            File kasiroffbackup=new File(Environment.getExternalStorageDirectory(),"kasirkubackup");
+            File kasiroffbackup=new File(Environment.getExternalStorageDirectory(),"dicabackup");
             if(!kasiroffbackup.exists()){
                 kasiroffbackup.mkdirs();
             }
-            File laporandirectori=new File(Environment.getExternalStorageDirectory(),"kasirkubackup/laporan");
+            File laporandirectori=new File(Environment.getExternalStorageDirectory(),"dicabackup/laporan");
             if(!laporandirectori.exists()){
                 laporandirectori.mkdirs();
             }
@@ -178,55 +187,58 @@ public class MainActivity extends AppCompatActivity {
         cpersediaan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sp.getInt("read_persediaan",0)==1) {
+//                if(sp.getInt("read_persediaan",2)==1) {
                     Intent in = new Intent(MainActivity.this, PersediaanActivity.class);
                     startActivity(in);
-                }else{
-                    Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
-                }
+  //              }else{
+    //                Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
+      //          }
             }
         });
 
     }
 
-    private void showpembelian() {
-        cpembelian.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(sp.getInt("read_pembelian",0)==1) {
-                    Intent in = new Intent(MainActivity.this, PembelianActivity.class);
-                    startActivity(in);
-                }else{
-                    Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-    }
+//    private void showpembelian() {
+//        cpembelian.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(sp.getInt("read_pembelian",1)==1) {
+//                    Intent in = new Intent(MainActivity.this, PembelianActivity.class);
+//                    startActivity(in);
+//                }else{
+//                    Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//
+//    }
 
     private void showpenjualan() {
         cpenjualan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sp.getInt("read_penjualan",0)==1) {
+//                if(sp.getInt("read_penjualan",1)==1) {
                     Intent in = new Intent(MainActivity.this, PenjualanActivity.class);
                     startActivity(in);
-                }else{
-                    Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
-                }
+  //              }else{
+                    //Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
+    //            }
             }
         });
 
     }
 
     private void showlaporan() {
+        final String status = SharedPrefManager.getInstance(getApplicationContext()).getUser().getStatus();
         claporan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sp.getInt("read_laporan",0)==1) {
+                    if(status.equals("1")) {
                     Intent in = new Intent(MainActivity.this, LaporanActivity.class);
                     startActivity(in);
+                    System.out.println("statusnya " +status);
                 }else{
+                    System.out.println("statusnya " +status);
                     Toast.makeText(MainActivity.this, "Proses Ditolak, Anda tidak memiliki akses", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -245,33 +257,34 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void keluar() {
-        ckeluar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder adb=new AlertDialog.Builder(MainActivity.this);
-                adb.setTitle("Konfirmasi");
-                adb.setMessage("Anda ingin keluar dari aplikasi ?");
-                adb.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        System.exit(0);
-                    }
-                });
-
-                adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-                adb.show();
-
-            }
-        });
-
-    }
+//    private void keluar() {
+//        ckeluar.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AlertDialog.Builder adb=new AlertDialog.Builder(MainActivity.this);
+//                adb.setTitle("Konfirmasi");
+//                adb.setMessage("Anda ingin keluar dari aplikasi ?");
+//                adb.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        Intent in = new Intent(MainActivity.this, LoginActivity.class);
+//                        startActivity(in);
+//                    }
+//                });
+//
+//                adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                    }
+//                });
+//
+//                adb.show();
+//
+//            }
+//        });
+//
+//    }
 
     @Override
     public void onBackPressed() {

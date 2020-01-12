@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -45,7 +47,7 @@ public class TambahPersediaanActivity extends AppCompatActivity {
     Dblocalhelper dbo;
     String kode_barang = "";
     String[] tipe_persediaan_item = {"Barang Jadi"};
-
+    NumberFormat nf = NumberFormat.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,21 +114,78 @@ public class TambahPersediaanActivity extends AppCompatActivity {
     }
 
     private void savedata() {
+        final String kdbarang = edkode_barang.getText().toString();
+        final String nmbarang = ednama_barang.getText().toString();
+        final String hargabeli = edharga_beli.getText().toString();
+        final String hargajual = edharga_jual.getText().toString();
+        final String diskon = eddiskon.getText().toString();
+        final String satuan = edsatuan.getText().toString();
+        final String jumlah = edjumlah.getText().toString();
+
         bsimpan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (kdbarang.equals("")){
+                    edkode_barang.setError("Masukkan Kode Barang");
+                    edkode_barang.requestFocus();
+                }else {
+                    edkode_barang.setError(null);
+                }
+//                if (TextUtils.isEmpty(nmbarang)) {
+//                    ednama_barang.setError("Masukkan Nama Barang");
+//                    ednama_barang.requestFocus();
+//                    return;
+//                }else {
+//                    ednama_barang.setError(null);
+//                }
+//                if (TextUtils.isEmpty(hargabeli)) {
+//                    edharga_beli.setError("Masukkan Harga Beli");
+//                    edharga_beli.requestFocus();
+//                    return;
+//                }else {
+//                    edharga_beli.setError(null);
+//                }
+//                if (TextUtils.isEmpty(hargajual)) {
+//                    edharga_jual.setError("Masukkan Harga Jual");
+//                    edharga_jual.requestFocus();
+//                    return;
+//                }else {
+//                    edharga_jual.setError(null);
+//                }
+//                if (TextUtils.isEmpty(diskon)) {
+//                    eddiskon.setError("Masukkan Diskon (0 jika tidak diskon)");
+//                    eddiskon.requestFocus();
+//                    return;
+//                }else {
+//                    eddiskon.setError(null);
+//                }
+//                if (TextUtils.isEmpty(satuan)) {
+//                    edsatuan.setError("Masukkan Jenis Satuan Barang");
+//                    edsatuan.requestFocus();
+//                    return;
+//                }else {
+//                    edsatuan.setError(null);
+//                }
+//                if (TextUtils.isEmpty(jumlah)) {
+//                    edjumlah.setError("Masukkan Jumlah Barang");
+//                    edjumlah.requestFocus();
+//                    return;
+//                }else {
+//                    edjumlah.setError(null);
+//                }
+
                 String fileimg = "";
                 try {
                     BitmapDrawable bmpd = (BitmapDrawable) img_barang.getDrawable();
                     Bitmap bmp = bmpd.getBitmap();
-                    File dirapp = new File(getFilesDir(), "kasirkuimage");
+                    File dirapp = new File(getFilesDir(), "dicaimage");
                     SQLiteDatabase dbr = dbo.getReadableDatabase();
                     Cursor c = dbr.rawQuery("SELECT COUNT(kode_barang),gambar_barang FROM persediaan WHERE kode_barang='" + kode_barang + "' LIMIT 1", null);
                     c.moveToFirst();
                     if (c.getInt(0)==0) {
                         fileimg = dirapp.getPath() + "/" + System.currentTimeMillis() + ".jpg";
                     } else {
-                        File fldel = new File(getFilesDir(), "kasirkuimage/" + c.getString(1));
+                        File fldel = new File(getFilesDir(), "dicaimage/" + c.getString(1));
                         fldel.delete();
                         fileimg = dirapp.getPath() + "/" + System.currentTimeMillis() + ".jpg";
                     }
@@ -148,7 +207,6 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                 }
                 SQLiteDatabase db = dbo.getWritableDatabase();
                 db.beginTransaction();
-                //String tipe_barang = String.valueOf(stipe_persediaan.getSelectedItemPosition());
                 try {
                     String currenttime = new SimpleDateFormat("yyyyMMddHHmmsszzz").format(new Date());
                     if (kode_barang.equals("")) {
@@ -164,6 +222,7 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                                 "'" + fileimg + "'," +
                                 ""+Oneforallfunc.Stringtodouble(eddiskon.getText().toString())+"," +
                                 "'"+currenttime+"')");
+
                     } else {
                         db.execSQL("UPDATE persediaan SET kode_barang='" + edkode_barang.getText().toString() + "'," +
                                 "nama_barang='" + ednama_barang.getText().toString() + "'," +
@@ -174,6 +233,7 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                                 "gambar_barang='" + fileimg + "'," +
                                 "diskon=" + Oneforallfunc.Stringtoint(eddiskon.getText().toString()) +" " +
                                 "WHERE kode_barang='" + kode_barang + "' ");
+
                     }
                     db.setTransactionSuccessful();
                     Toast.makeText(TambahPersediaanActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
@@ -184,30 +244,8 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                     db.endTransaction();
                     db.close();
                 }
-
-//                if (tipe_barang.equals("1")) {
-//                    AlertDialog.Builder adb = new AlertDialog.Builder(TambahPersediaanActivity.this);
-//                    adb.setTitle("Informasi");
-//                    adb.setMessage("Tambahkan Bahan Racikan?");
-//                    adb.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            Intent intn = new Intent(TambahPersediaanActivity.this, RacikActivity.class);
-//                            intn.putExtra("kode_barang", edkode_barang.getText().toString());
-//                            intn.putExtra("nama_barang", ednama_barang.getText().toString());
-//                            startActivity(intn);
-//                        }
-//                    });
-//                    adb.setNegativeButton("Tidak", new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            dialog.dismiss();
-//                        }
-//                    });
-//                    adb.setCancelable(false);
-//                    adb.show();
-//                }
-
+                System.out.print("edharga_beli.getText() di create: "+Oneforallfunc.Stringtodouble(edharga_beli.getText().toString()));
+                System.out.print("edharga_beli.getText() di update: "+Oneforallfunc.Stringtodouble(edharga_beli.getText().toString()));
             }
         });
 
@@ -268,10 +306,15 @@ public class TambahPersediaanActivity extends AppCompatActivity {
     }
 
     private void loaddata(final String kode_barang) {
+        final NumberFormat nf = NumberFormat.getInstance();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 SQLiteDatabase db = dbo.getReadableDatabase();
+                int beli = 0;
+                int jual = 0;
+                int diskon = 0;
+                int jumlah = 0;
                 try {
                     String query = "SELECT kode_barang,nama_barang,satuan_barang,harga_beli,harga_jual," +
                             "jumlah_barang,gambar_barang,diskon FROM persediaan WHERE kode_barang='" + kode_barang + "' ";
@@ -280,11 +323,13 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                         edkode_barang.setText(c.getString(0));
                         ednama_barang.setText(c.getString(1));
                         edsatuan.setText(c.getString(2));
-                        edharga_beli.setText(c.getString(3));
-                        edharga_jual.setText(c.getString(4));
-                        edjumlah.setText(c.getString(5));
+                        beli = (int) c.getDouble(3);
+                        edharga_beli.setText(String.valueOf(beli));
+                        jual = (int)c.getDouble(4);
+                        edharga_jual.setText(String.valueOf(jual));
+                        jumlah = (int)c.getDouble(5);
+                        edjumlah.setText(String.valueOf(jumlah));
                         //stipe_persediaan.setSelection(c.getInt(7));
-                        eddiskon.setText(c.getString(8));
                         img_barang.setMaxWidth(200);
                         img_barang.getLayoutParams().width = 250;
                         img_barang.getLayoutParams().height = 250;
@@ -294,7 +339,13 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                             Bitmap bmp = BitmapFactory.decodeFile(c.getString(6));
                             img_barang.setImageBitmap(bmp);
                         }
+                        diskon = (int)c.getDouble(7);
+                        eddiskon.setText(String.valueOf(diskon));
 
+                        System.out.println("ini nilai harga beli" + beli);
+                        System.out.println("ini nilai harga jual" + jual);
+                        System.out.println("ini nilai harga diskon" + diskon);
+                        System.out.println("ini nilai harga jumlah" + jumlah);
 
                     }
                 } catch (Exception e) {
@@ -302,6 +353,7 @@ public class TambahPersediaanActivity extends AppCompatActivity {
                 } finally {
                     db.close();
                 }
+                System.out.println("ini ed_hargabeli"+edharga_beli);
             }
         }, 100);
     }

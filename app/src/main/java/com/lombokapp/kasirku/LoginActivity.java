@@ -5,7 +5,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
@@ -18,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.lombokapp.kasirku.Model.Login;
 import com.lombokapp.kasirku.Model.Result;
 import com.lombokapp.kasirku.Model.User;
 import com.lombokapp.kasirku.adapter.SharedPrefManager;
@@ -33,14 +36,16 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
-
+    public User dian = new User();
     EditText edusername,edpassword,edid_perusahaan;
     Button bmasuk;
     Context mContext;
+    Dblocalhelper dbo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        dbo=new Dblocalhelper(this);
         edid_perusahaan=findViewById(R.id.edid_perusahaan);
         edusername=findViewById(R.id.edusername);
         edpassword=findViewById(R.id.edpassword);
@@ -49,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
         login();
         checkConnection();
         mContext = this;
+        SQLiteDatabase db = dbo.getWritableDatabase();
+        db.beginTransaction();
+        db.endTransaction();
+        db.close();
 
     }
 
@@ -105,12 +114,14 @@ public class LoginActivity extends AppCompatActivity {
 
 
         bmasuk.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 final String username = edusername.getText().toString().trim();
                 final String pass = edpassword.getText().toString().trim();
                 final String perusahaan = edid_perusahaan.getText().toString().trim();
-                final User dian = new User();
+
+
                 progressDialog.show();
 
                 Retrofit retrofit = new Retrofit.Builder()
@@ -119,22 +130,33 @@ public class LoginActivity extends AppCompatActivity {
                         .build();
                 ApiService apiService = retrofit.create(ApiService.class);
 
-                Call <Result> call = apiService.userLogin(
+                Call<Login> call = apiService.userLogin(
                         username,
                         pass,
                         perusahaan
                 );
-                call.enqueue(new Callback<Result>() {
+                call.enqueue(new Callback<Login>() {
                     @Override
-                    public void onResponse(Call<Result> call, Response<Result> response) {
+                    public void onResponse(Call<Login> call, Response<Login> response) {
                         System.out.println(response.body());
-                        if (!response.body().getError()) {
+                        if (!response.body().getError() && response.body().getSuccess()==1) {
                             progressDialog.dismiss();
                             finish();
                             System.out.println("Berhasil");
                             dian.setNama(username);
+                            dian.setPerusahaan(perusahaan);
+                            dian.setStatus(response.body().getStatus());
+                            dian.setIduser(response.body().getId());
+                            System.out.println("ini status " + response.body().getStatus());
+                            System.out.println("ini id dari response " + response.body().getId());
+                            System.out.println("ini id dari user.java :" + dian.getIduser());
+                            System.out.println(perusahaan);
                             SharedPrefManager.getInstance(getApplicationContext()).userLogin(dian);
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        } else if (response.body().getSuccess()==2){
+                            progressDialog.dismiss();
+                            Toast.makeText(getApplicationContext(), "Anda login di device lain, silahkan logout dulu di device tersebut", Toast.LENGTH_LONG).show();
+                            System.out.println("response skses 2 "+response.body().getMessage());
                         } else {
                             progressDialog.dismiss();
                             System.out.println("error");
@@ -143,54 +165,16 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<Result> call, Throwable t) {
+                    public void onFailure(Call<Login> call, Throwable t) {
                         progressDialog.dismiss();
                         System.out.println("ini failure");
                         System.out.println(pass);
+                        //Toast.makeText(getApplicationContext(), "Gagal Login", Toast.LENGTH_LONG).show();
                         Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
 
             }
         });
-//
-//        mApiService.userLogin(edusername.getText().toString(), edpassword.getText().toString(), edid_perusahaan.getText().toString()).
-//                enqueue(new Callback<ResponseBody>() {
-//                    @Override
-//                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                       // if(response.isSuccessful()){
-//                            try {
-//                                JSONObject jsonRESULTS = new JSONObject(response.body().string());
-//                                if (jsonRESULTS.getString("error").equals("false")){
-//                                    Toast.makeText(mContext,"Login Berhasil", Toast.LENGTH_SHORT).show();
-//                                    String nama = jsonRESULTS.getJSONObject("user").getString("nama");
-//                                    startActivity(new Intent(mContext,MainActivity.class)
-//                                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK));
-//                                    finish();
-//                                } else {
-//                                    String message_error = jsonRESULTS.getString("error_msg");
-//                                    Toast.makeText(mContext,message_error,Toast.LENGTH_SHORT).show();
-//                                }
-//                            } catch (JSONException e) {
-//                                e.printStackTrace();
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                       // } else {
-//
-//                       // }
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                        Log.e("debug", "onFailure: ERROR > " + t.toString());
-//                    }
-//                });
     }
-//    @Override
-//    public void onClick(View view) {
-//        if (view == bmasuk){
-//            login();
-//        }
-//    }
 }

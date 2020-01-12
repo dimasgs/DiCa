@@ -43,7 +43,6 @@ public class LihatLaporanActivity extends AppCompatActivity {
     ListView lvdata;
     TextView ltotal, ljudul,ltanggal,ljumlah,lkode_trans,lnama,lharga,lhtotal;
     Button bexport;
-    Button bdelete;
     Dblocalhelper dbo;
     NumberFormat nf = NumberFormat.getInstance();
     reportadapter adapter;
@@ -69,7 +68,6 @@ public class LihatLaporanActivity extends AppCompatActivity {
         lnama = findViewById(R.id.lnama);
         lharga = findViewById(R.id.lharga);
         bexport = findViewById(R.id.bexport);
-        bdelete = findViewById(R.id.bdelete);
         dbo = new Dblocalhelper(this);
         edtanggal_dari.setFocusable(false);
         edtanggal_hingga.setFocusable(false);
@@ -81,9 +79,11 @@ public class LihatLaporanActivity extends AppCompatActivity {
         tipe = ex.getString("tipe");
         if (tipe.equals("penjualan")) {
             ljudul.setText("Laporan Penjualan");
-        } else if (tipe.equals("pembelian")) {
-            ljudul.setText("Laporan Pembelian");
-        }else if(tipe.equals("stok")){
+        }
+//        else if (tipe.equals("pembelian")) {
+//            ljudul.setText("Laporan Pembelian");
+//        }
+        else if(tipe.equals("stok")){
             ltanggal.setVisibility(View.GONE);
             float density=getApplicationContext().getResources().getDisplayMetrics().density;
             lkode_trans.getLayoutParams().width= Math.round(90 * density);
@@ -122,13 +122,13 @@ public class LihatLaporanActivity extends AppCompatActivity {
                     "INNER JOIN penjualan_master pjm ON pjm.kode_penjualan_master=pjd.kode_penjualan_master " +
                     "WHERE tanggal_penjualan BETWEEN '" + edtanggal_dari.getText().toString() + "' AND '" + edtanggal_hingga.getText().toString() + "' " +
                     "ORDER BY pjm.date_created DESC";
-        } else if (tipe.equals("pembelian")) {
-            query = "SELECT pbd.kode_pembelian_master,pbm.tanggal_pembelian,ps.nama_barang,pbd.jumlah,pbd.harga_beli,0," +
-                    "pbd.jumlah*pbd.harga_beli from pembelian_detail pbd " +
-                    "INNER JOIN persediaan ps ON ps.kode_barang=pbd.kode_barang " +
-                    "INNER JOIN pembelian_master pbm ON pbm.kode_pembelian_master=pbd.kode_pembelian_master " +
-                    "WHERE tanggal_pembelian BETWEEN '" + edtanggal_dari.getText().toString() + "' AND " +
-                    "'" + edtanggal_hingga.getText().toString() + "' ORDER BY pbm.date_created DESC";
+        }else if (tipe.equals("pembelian")) {
+                        query = "SELECT pbd.kode_pembelian_master,pbm.tanggal_pembelian,ps.nama_barang,pbd.jumlah,pbd.harga_beli,0," +
+                                "pbd.jumlah*pbd.harga_beli from pembelian_detail pbd " +
+                                "INNER JOIN persediaan ps ON ps.kode_barang=pbd.kode_barang " +
+                                "INNER JOIN pembelian_master pbm ON pbm.kode_pembelian_master=pbd.kode_pembelian_master " +
+                                "WHERE tanggal_pembelian BETWEEN '" + edtanggal_dari.getText().toString() + "' AND " +
+                                "'" + edtanggal_hingga.getText().toString() + "' ORDER BY pbm.date_created DESC";
         }else if (tipe.equals("stok")) {
             query = "SELECT kode_barang,nama_barang,satuan_barang,jumlah_barang,0,0,0 FROM persediaan ORDER BY jumlah_barang DESC";
         }else if (tipe.equals("ranking")) {
@@ -198,34 +198,12 @@ public class LihatLaporanActivity extends AppCompatActivity {
             }
         });
     }
-    private void deletereport(){
-        bdelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String ddari = edtanggal_dari.getText().toString();
-                String dhingga = edtanggal_hingga.getText().toString();
-
-                try {
-                    String query ="";
-                    SQLiteDatabase db = dbo.getWritableDatabase();
-                    db.beginTransaction();
-                    if (tipe.equals("penjualan")) {
-                        query = "DELETE FROM pjd.kode_penjualan, pjm.tanggal_penjualan, ";
-
-                    }
-                } catch (Exception e) {
-                    Toast.makeText(LihatLaporanActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
     private void exportreport() {
         bexport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File kasiroffbackup = new File(Environment.getExternalStorageDirectory(), "kasirkubackup");
-                File laporandirectori = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/laporan");
+                File kasiroffbackup = new File(Environment.getExternalStorageDirectory(), "dicabackup");
+                File laporandirectori = new File(Environment.getExternalStorageDirectory(), "dicabackup/laporan");
                 if (ActivityCompat.checkSelfPermission(LihatLaporanActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED &&
                         ActivityCompat.checkSelfPermission(LihatLaporanActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -257,13 +235,13 @@ public class LihatLaporanActivity extends AppCompatActivity {
                 String ddari = edtanggal_dari.getText().toString();
                 String dhingga = edtanggal_hingga.getText().toString();
                 if (tipe.equals("penjualan")) {
-                    laporanfile = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/laporan/penjualan" + ddari + " - " + dhingga + ".csv");
+                    laporanfile = new File(Environment.getExternalStorageDirectory(), "dicabackup/laporan/penjualan" + ddari + " - " + dhingga + ".csv");
                 } else if (tipe.equals("pembelian")) {
-                    laporanfile = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/laporan/pembelian" + ddari + " - " + dhingga + ".csv");
+                    laporanfile = new File(Environment.getExternalStorageDirectory(), "dicabackup/laporan/pembelian" + ddari + " - " + dhingga + ".csv");
                 }else if (tipe.equals("stok")) {
-                    laporanfile = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/laporan/stok" + ddari + " - " + dhingga + ".csv");
+                    laporanfile = new File(Environment.getExternalStorageDirectory(), "dicabackup/laporan/stok" + ddari + " - " + dhingga + ".csv");
                 }else if (tipe.equals("ranking")) {
-                    laporanfile = new File(Environment.getExternalStorageDirectory(), "kasirkubackup/laporan/ranking" + ddari + " - " + dhingga + ".csv");
+                    laporanfile = new File(Environment.getExternalStorageDirectory(), "dicabackup/laporan/ranking" + ddari + " - " + dhingga + ".csv");
                 }
                 if (!laporanfile.exists()) {
                     try {
@@ -354,7 +332,7 @@ public class LihatLaporanActivity extends AppCompatActivity {
                     AlertDialog.Builder adb=new AlertDialog.Builder(LihatLaporanActivity.this);
                     adb.setTitle("Informasi");
                     adb.setMessage("Data Berhasil Diexport, Data yang diexport berupa file csv yang tersimpan " +
-                            "otomatis di folder laporan yang berada di dalam folder kasirkubackup (kasirkubackup/laporan)");
+                            "otomatis di folder laporan yang berada di dalam folder dicabackup (dicabackup/laporan)");
                     adb.setPositiveButton("Buka File", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

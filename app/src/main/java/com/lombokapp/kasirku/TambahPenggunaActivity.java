@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,7 +40,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class TambahPenggunaActivity extends AppCompatActivity {
-
+    ImageView breload;
     FloatingActionButton fbtambahpengguna;
     Dblocalhelper dbo;
     String passlama = "";
@@ -50,18 +51,27 @@ public class TambahPenggunaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tambah_pengguna);
         fbtambahpengguna = findViewById(R.id.fbtambahpengguna);
         listView = findViewById(R.id.lv);
+//        breload = findViewById(R.id.breload);
 //        dbo = new Dblocalhelper(this);
 //        loaddata();
         adduser();
         getUserList();
+//        reload();
     }
+//    private void reload() {
+//        breload.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                getUserList();
+//            }
+//        });
+//    }
 //getUserList() pakek id_perusahaan
     private void getUserList(){
 
         final User dian = new User();
         final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
         final String id_perusahaan = user.getperusahaan();
-        final String id_user = user.getId_user();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(APIUrl.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -74,15 +84,65 @@ public class TambahPenggunaActivity extends AppCompatActivity {
         call.enqueue(new Callback<List<ListPengguna>>() {
             @Override
             public void onResponse(Call<List<ListPengguna>> call, Response<List<ListPengguna>> response) {
-                List<ListPengguna> listuser = response.body();
+                final List<ListPengguna> listuser = response.body();
 
-                String[] user = new String[listuser.size()];
+                final String[] user = new String[listuser.size()];
                 System.out.println(response.body());
 
                 for (int i = 0; i < listuser.size(); i++) {
                     user[i] = listuser.get(i).getUsername();
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                            listuser.get(position).getIdUser();
+                            AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenggunaActivity.this);
+                            adb.setTitle("Konfirmasi");
+                            adb.setMessage("Yakin Ingin Menghapus "+listuser.get(position).getUsername());
+                            adb.setPositiveButton("Hapus", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    final String id_user = listuser.get(position).getIdUser();
+                                    Retrofit retrofit = new  Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+                                    ApiService service = retrofit.create(ApiService.class);
+                                    Call<DelUser> call = service.deleteUser(
+                                            id_user
+                                    );
+                                    call.enqueue(new Callback<DelUser>() {
+                                        @Override
+                                        public void onResponse(Call<DelUser> call, Response<DelUser> response) {
+
+                                            if(!response.body().getError()){
+                                                System.out.println("id user di hapus user " +id_user);
+                                                System.out.println("berhasil hapus pengguna");
+                                                Toast.makeText(TambahPenggunaActivity.this, "Berhasil Menghapus Pengguna", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                System.out.println("gagal hapus pengguna");
+                                                Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+                                            }
+                                        }
+                                        @Override
+                                        public void onFailure(Call<DelUser> call, Throwable t) {
+                                            System.out.println("failure");
+                                            Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                                        }
+                                    });
+                                }
+                            });
+
+                            adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            adb.show();
+                            getUserList();
+                        }
+                    });
                 }
-                System.out.println(dian.getId_user());
 
                 listView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, user));
             }
@@ -93,64 +153,13 @@ public class TambahPenggunaActivity extends AppCompatActivity {
             }
         });
         //hapus user
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenggunaActivity.this);
-                adb.setTitle("Konfirmasi");
-                adb.setMessage("Yakin Ingin Menghapus "+user.getId_user());
-                adb.setPositiveButton("Hapus", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String id_user = user.getId_user();
-
-                        Retrofit retrofit = new  Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build();
-                        ApiService service = retrofit.create(ApiService.class);
-                        Call<DelUser> call = service.deleteUser(
-                                id_user
-                        );
-                        call.enqueue(new Callback<DelUser>() {
-                            @Override
-                            public void onResponse(Call<DelUser> call, Response<DelUser> response) {
-                                if(!response.body().getError()){
-
-                                    dian.setId_user(user.getId_user());
-                                    System.out.println("berhasil hapus pengguna");
-                                    Toast.makeText(TambahPenggunaActivity.this, "Berhasil Menghapus Pengguna", Toast.LENGTH_SHORT).show();
-                                    System.out.println("ini id perusahaan "+id_perusahaan);
-                                } else {
-                                    System.out.println("gagal hapus pengguna");
-                                    System.out.println(response.body().getError());
-                                    System.out.println(user.getId_user());
-                                    Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
-                                }
-                            }
-                            @Override
-                            public void onFailure(Call<DelUser> call, Throwable t) {
-                                System.out.println("failure");
-                                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-                });
-
-                adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                adb.show();
-            }
-        });
     }
     private void adduser() {
         fbtambahpengguna.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 tambahpengguna();
+                getUserList();
             }
         });
 

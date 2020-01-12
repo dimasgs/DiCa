@@ -223,8 +223,7 @@ public class PosBarcodeActivity extends AppCompatActivity {
                         1,
                         c.getDouble(4) * 1,
                         c.getDouble(8),
-                        c.getString(6),
-                        c.getInt(7)
+                        c.getString(6)
 
                 ));
                 //Toast.makeText(PosBarcodeActivity.this, "1 Barang Baru Ditambahkan", Toast.LENGTH_SHORT).show();

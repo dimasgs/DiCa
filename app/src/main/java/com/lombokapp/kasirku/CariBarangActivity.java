@@ -81,21 +81,15 @@ public class CariBarangActivity extends AppCompatActivity {
                 SQLiteDatabase db = dbo.getReadableDatabase();
                 try {
                     String query = "";
-                    if (tipe_transaksi.equals("racik")) {
                         query = "SELECT kode_barang,nama_barang,satuan_barang,harga_beli,harga_jual," +
-                                "jumlah_barang,gambar_barang,tipe_barang,diskon FROM persediaan WHERE tipe_barang=0 LIMIT 100 OFFSET " + currentoffset + " ";
-                    } else {
-                        query = "SELECT kode_barang,nama_barang,satuan_barang,harga_beli,harga_jual," +
-                                "jumlah_barang,gambar_barang,tipe_barang,diskon FROM persediaan LIMIT 100 OFFSET " + currentoffset + " ";
-                    }
-
+                                "jumlah_barang,gambar_barang,diskon FROM persediaan LIMIT 100 OFFSET " + currentoffset + " ";
 
                     Cursor c = db.rawQuery(query, null);
                     while (c.moveToNext()) {
 
                         lsdata.add(new CariBarangModel(c.getString(0), c.getString(1),
                                 c.getString(2), c.getInt(3), c.getDouble(4),
-                                c.getDouble(5), c.getString(6),c.getInt(7),c.getDouble(8)));
+                                c.getDouble(5), c.getString(6),c.getDouble(7)));
                     }
                     ;
 
@@ -124,23 +118,16 @@ public class CariBarangActivity extends AppCompatActivity {
                         SQLiteDatabase db = dbo.getReadableDatabase();
                         try {
                             String query = "";
-                            if (tipe_transaksi.equals("racik")) {
                                 query = "SELECT kode_barang,nama_barang,satuan_barang,harga_beli,harga_jual," +
-                                        "jumlah_barang,gambar_barang,tipe_barang,diskon FROM persediaan WHERE tipe_barang=0 AND " +
-                                        "(kode_barang LIKE '%" + setquery + "%' OR " +
-                                        "nama_barang LIKE '%" + setquery + "%') LIMIT 100 ";
-                            } else {
-                                query = "SELECT kode_barang,nama_barang,satuan_barang,harga_beli,harga_jual," +
-                                        "jumlah_barang,gambar_barang,tipe_barang,diskon FROM persediaan WHERE " +
+                                        "jumlah_barang,gambar_barang,diskon FROM persediaan WHERE " +
                                         "kode_barang LIKE '%" + setquery + "%' OR " +
                                         "nama_barang LIKE '%" + setquery + "%' LIMIT 100 ";
-                            }
                             Cursor c = db.rawQuery(query, null);
                             while (c.moveToNext()) {
 
                                 lsdata.add(new CariBarangModel(c.getString(0), c.getString(1),
                                         c.getString(2), c.getInt(3), c.getDouble(4),
-                                        c.getDouble(5), c.getString(6),c.getInt(7),c.getDouble(8)));
+                                        c.getDouble(5), c.getString(6),c.getInt(7)));
                             }
                             ;
 
@@ -269,8 +256,8 @@ public class CariBarangActivity extends AppCompatActivity {
                                         1,
                                         (model.get(position).getHarga_jual()-(model.get(position).getHarga_jual()*(model.get(position).getDiskon()/100))) * 1,
                                         model.get(position).getDiskon(),
-                                        model.get(position).getGambar_barang(),
-                                        model.get(position).getTipe_barang()
+                                        model.get(position).getGambar_barang()
+
 
                                 ));
                                 Toast.makeText(ct, "1 Barang Baru Ditambahkan", Toast.LENGTH_SHORT).show();
@@ -284,39 +271,7 @@ public class CariBarangActivity extends AppCompatActivity {
                                 Toast.makeText(ct, model.get(position).getNama_barang() + " Ditambahkan 1", Toast.LENGTH_SHORT).show();
 
                             }
-                        } else if (tipe_transaksi.equals("racik")) {
-
-                            int posisiindex = -1;
-
-                            for (int i = 0; i < RacikActivity.lsdata.size(); i++) {
-                                RacikActivity.RacikModel inmodel = RacikActivity.lsdata.get(i);
-                                if (inmodel.getKode_barang().equals(model.get(position).getKode_barang())) {
-                                    posisiindex = i;
-                                }
-                            }
-
-                            if (posisiindex < 0) {
-                                RacikActivity.lsdata.add(new RacikActivity.RacikModel(
-                                        model.get(position).getKode_barang(),
-                                        model.get(position).getNama_barang(),
-                                        1,
-                                        model.get(position).getHarga_beli(),
-                                        model.get(position).getHarga_beli(),
-                                        model.get(position).getGambar_barang()
-
-                                ));
-                                Toast.makeText(ct, "1 Barang Baru Ditambahkan", Toast.LENGTH_SHORT).show();
-                            } else {
-                                double jumlahawal = RacikActivity.lsdata.get(posisiindex).getJumlah();
-                                double harga_beli = RacikActivity.lsdata.get(posisiindex).getHarga_beli();
-                                RacikActivity.lsdata.get(posisiindex).setJumlah(jumlahawal + 1);
-                                RacikActivity.lsdata.get(posisiindex).setTotal_harga(harga_beli * (jumlahawal + 1));
-                                Toast.makeText(ct, model.get(position).getNama_barang() + " Ditambahkan 1", Toast.LENGTH_SHORT).show();
-
-                            }
                         }
-
-
                     }
                 });
             }
@@ -354,10 +309,9 @@ public class CariBarangActivity extends AppCompatActivity {
         String kode_barang, nama_barang, satuan_barang;
         double harga_beli, harga_jual, jumlah_barang;
         String gambar_barang;
-        int tipe_barang;
         double diskon;
 
-        public CariBarangModel(String kode_barang, String nama_barang, String satuan_barang, double harga_beli, double harga_jual, double jumlah_barang, String gambar_barang, int tipe_barang, double diskon) {
+        public CariBarangModel(String kode_barang, String nama_barang, String satuan_barang, double harga_beli, double harga_jual, double jumlah_barang, String gambar_barang,double diskon) {
             this.kode_barang = kode_barang;
             this.nama_barang = nama_barang;
             this.satuan_barang = satuan_barang;
@@ -365,7 +319,6 @@ public class CariBarangActivity extends AppCompatActivity {
             this.harga_jual = harga_jual;
             this.jumlah_barang = jumlah_barang;
             this.gambar_barang = gambar_barang;
-            this.tipe_barang = tipe_barang;
             this.diskon = diskon;
         }
 
@@ -423,14 +376,6 @@ public class CariBarangActivity extends AppCompatActivity {
 
         public void setGambar_barang(String gambar_barang) {
             this.gambar_barang = gambar_barang;
-        }
-
-        public int getTipe_barang() {
-            return tipe_barang;
-        }
-
-        public void setTipe_barang(int tipe_barang) {
-            this.tipe_barang = tipe_barang;
         }
 
         public double getDiskon() {

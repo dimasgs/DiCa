@@ -33,6 +33,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.lombokapp.kasirku.Model.Perusahaan;
+import com.lombokapp.kasirku.Model.User;
+import com.lombokapp.kasirku.adapter.SharedPrefManager;
+import com.lombokapp.kasirku.api.APIUrl;
+import com.lombokapp.kasirku.api.ApiService;
 
 import java.io.File;
 import java.text.NumberFormat;
@@ -41,18 +46,24 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class TambahPenjualanActivity extends AppCompatActivity {
 
     public static ArrayList<TambahpenjualanModel> lsdata = new ArrayList<>();
     FloatingActionButton fbadd,fbbarcode;
-    Button bsimpan, bbayar;
+    Button bbayar;
     RecyclerView rvdata;
     RecyclerView.LayoutManager layman;
     TambahpenjualanAdapter adapter;
     Dblocalhelper dbo;
     EditText ednotrans, edtanggaltrans, eddesk, edkodebarang, ednofaktur;
     ImageView bimg_barcode, bimg_tanggal;
-    TextView ltotal;
+    TextView ltotal, kembali;
     NumberFormat nf = NumberFormat.getInstance();
     String kode_transaksi = "";
     Calendar cal = Calendar.getInstance();
@@ -72,7 +83,6 @@ public class TambahPenjualanActivity extends AppCompatActivity {
         bimg_barcode = findViewById(R.id.bimg_barcode);
         bimg_tanggal = findViewById(R.id.bimg_tanggal);
         ltotal = findViewById(R.id.ltotal);
-        bsimpan = findViewById(R.id.bsimpan);
         bbayar = findViewById(R.id.bbayar);
         layman = new LinearLayoutManager(this);
         rvdata.setLayoutManager(layman);
@@ -105,7 +115,6 @@ public class TambahPenjualanActivity extends AppCompatActivity {
             edtanggaltrans.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             kode_transaksi = "";
         }
-        savedata();
         caribarang();
         caribarcode();
         bayar();
@@ -138,7 +147,7 @@ public class TambahPenjualanActivity extends AppCompatActivity {
 
     private void rawadddata(String kode_barang) {
         SQLiteDatabase db = dbo.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT kode_barang,nama_barang,satuan_barang,harga_jual,diskon,gambar_barang,tipe_barang " +
+        Cursor c = db.rawQuery("SELECT kode_barang,nama_barang,satuan_barang,harga_jual,diskon,gambar_barang,harga_beli " +
                 "FROM persediaan WHERE kode_barang='" + kode_barang + "' LIMIT 1", null);
         if (c.moveToFirst()) {
             if (c.getString(0).equals("") || c.getString(0) == null) {
@@ -159,7 +168,7 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                     lsdata.add(new TambahpenjualanModel(c.getString(0), c.getString(1),
                             c.getString(2), c.getDouble(3), 1,
                             (c.getDouble(3) - diskonnominal) * 1,
-                            c.getDouble(4), c.getString(5), c.getInt(6)));
+                            c.getDouble(4), c.getString(5)));
                 } else {
                     double jumlahawal = lsdata.get(posisiindex).getJumlah();
                     double diskonpersen = lsdata.get(posisiindex).getDiskon();
@@ -208,15 +217,14 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                 try {
 
                     String query = "SELECT pd.kode_barang,nama_barang,satuan_barang,pd.harga_jual," +
-                            "jumlah,(pd.harga_jual-(pd.harga_jual*(pd.diskon/100)))*jumlah AS total,pd.diskon,gambar_barang,tipe_barang " +
+                            "jumlah,(pd.harga_jual-(pd.harga_jual*(pd.diskon/100)))*jumlah AS total,pd.diskon,gambar_barang" +
                             "FROM penjualan_detail pd INNER JOIN persediaan ps ON " +
                             "pd.kode_barang=ps.kode_barang WHERE kode_penjualan_master='" + kode_penjualan_master + "'";
                     Cursor c = db.rawQuery(query, null);
                     while (c.moveToNext()) {
                         lsdata.add(new TambahpenjualanModel(c.getString(0), c.getString(1),
                                 c.getString(2), c.getDouble(3), c.getDouble(4),
-                                c.getDouble(5), c.getDouble(6), c.getString(7),
-                                c.getInt(8)));
+                                c.getDouble(5), c.getDouble(6), c.getString(7)));
                     }
                     ;
 
@@ -235,6 +243,156 @@ public class TambahPenjualanActivity extends AppCompatActivity {
         }, 100);
 
 
+    }
+
+    private void bayar() {
+        bbayar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lsdata.size() <= 0) {
+                    Toast.makeText(TambahPenjualanActivity.this, "Proses Ditolak, Anda Belum Memasukan data", Toast.LENGTH_SHORT).show();
+                } else {
+                    final AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenjualanActivity.this);
+                    View vi = getLayoutInflater().inflate(R.layout.bayar_layout, null);
+                    final TextView ltotalbelanja = vi.findViewById(R.id.ltotalbelanja);
+                    final TextView lkembalian = vi.findViewById(R.id.lkembalian);
+                    final EditText edjumlahuang = vi.findViewById(R.id.edjumlahuang);
+                    Button boke = vi.findViewById(R.id.boke);
+                    Button bpas = vi.findViewById(R.id.bpass);
+                    Button b5 = vi.findViewById(R.id.b5);
+                    Button b10 = vi.findViewById(R.id.b10);
+                    Button b20 = vi.findViewById(R.id.b20);
+                    Button b50 = vi.findViewById(R.id.b50);
+                    Button b100 = vi.findViewById(R.id.b100);
+                    ltotalbelanja.setText(ltotal.getText().toString());
+                    final double kembali = 0 - Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
+                    lkembalian.setText(nf.format(kembali));
+                    System.out.println("kembalian"+kembali);
+                    adb.setTitle("Pembayaran");
+                    adb.setView(vi);
+                    adb.setCancelable(false);
+                    adb.setNeutralButton("Tutup", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    final AlertDialog ad = adb.create();
+                    boke.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            rawsavedata(1);
+                            ad.dismiss();
+                            lsdata.clear();
+                            adapter.notifyDataSetChanged();
+                            ednotrans.setText(dbo.getkodetransaksi("PJ"));
+                            edtanggaltrans.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+                            eddesk.setText("");
+                            edkodebarang.setText("");
+                            ltotal.setText("0.0");
+                            edkodebarang.setFocusable(true);
+                            edkodebarang.requestFocus();
+
+
+                        }
+                    });
+
+                    View.OnClickListener blistener = new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            double hasil = 0.0;
+                            switch (v.getId()) {
+                                case R.id.bpass:
+                                    try {
+                                        rawsavedata(1);
+                                        ad.dismiss();
+                                        lsdata.clear();
+                                        adapter.notifyDataSetChanged();
+                                        ednotrans.setText(dbo.getkodetransaksi("PJ"));
+                                        edtanggaltrans.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+                                        eddesk.setText("");
+                                        edkodebarang.setText("");
+                                        ltotal.setText("0.0");
+                                        edkodebarang.setFocusable(true);
+                                        edkodebarang.requestFocus();
+                                        break;
+                                    } catch (Exception ex) {
+                                        Toast.makeText(TambahPenjualanActivity.this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+                                        ex.printStackTrace();
+                                    }
+                                case R.id.b5:
+                                    edjumlahuang.setText("5.000");
+                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString()) -
+                                            Oneforallfunc.Stringtodouble(ltotalbelanja.getText().toString());
+                                    //lkembalian.setText(nf.format(hasil));
+                                    break;
+                                case R.id.b10:
+                                    edjumlahuang.setText("10.000");
+                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString()) -
+                                            Oneforallfunc.Stringtodouble(ltotalbelanja.getText().toString());
+                                    //lkembalian.setText(nf.format(hasil));
+                                    break;
+                                case R.id.b20:
+                                    edjumlahuang.setText("20.000");
+                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString()) -
+                                            Oneforallfunc.Stringtodouble(ltotalbelanja.getText().toString());
+                                    //lkembalian.setText(nf.format(hasil));
+                                    break;
+                                case R.id.b50:
+                                    edjumlahuang.setText("50.000");
+                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString()) -
+                                            Oneforallfunc.Stringtodouble(ltotalbelanja.getText().toString());
+                                    //lkembalian.setText(nf.format(hasil));
+                                    break;
+                                case R.id.b100:
+                                    edjumlahuang.setText("100.000");
+                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString()) -
+                                            //.replace(".", "")) -
+                                            Oneforallfunc.Stringtodouble(ltotalbelanja.getText().toString());
+                                                    //.replace(".", ""));
+                                    //lkembalian.setText(nf.format(hasil));
+                                    break;
+
+                            }
+
+
+                        }
+                    };
+                    bpas.setOnClickListener(blistener);
+                    b5.setOnClickListener(blistener);
+                    b10.setOnClickListener(blistener);
+                    b20.setOnClickListener(blistener);
+                    b50.setOnClickListener(blistener);
+                    b100.setOnClickListener(blistener);
+
+                    edjumlahuang.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            final double jumlahuang = Oneforallfunc.Stringtodouble(String.valueOf(s).replace(".",""));
+                            final double jumlahbelanja = Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(",",""));
+                            double kembali = jumlahuang - jumlahbelanja;
+                            lkembalian.setText(nf.format(kembali));
+                            System.out.println("total "+ ltotal.getText());
+                            System.out.println("jumlah uang "+jumlahuang);
+                            System.out.println("jumlah belanja "+jumlahbelanja);
+                            System.out.println("uang kembalian " +kembali);
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+
+                        }
+                    });
+                    ad.show();
+                }
+
+            }
+        });
     }
 
     private void rawsavedata(int status) {
@@ -260,18 +418,9 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                                 "" + Oneforallfunc.validdouble(lsdata.get(i).getJumlah()) + "," +
                                 "" + Oneforallfunc.validdouble(lsdata.get(i).getHarga_jual()) + "," +
                                 "" + Oneforallfunc.validdouble(lsdata.get(i).getDiskon()) + ")");
-                        if (lsdata.get(i).getTipe_barang() == 1) {
-                            String kode_barang_racik = lsdata.get(i).getKode_barang();
-                            Cursor cin = db.rawQuery("SELECT kode_barang_isi,jumlah_isi FROM racikan WHERE kode_barang_racik='" + kode_barang_racik + "'", null);
-                            while (cin.moveToNext()) {
-                                db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang-" + (cin.getDouble(1) * lsdata.get(i).getJumlah()) + " " +
-                                        "WHERE kode_barang='" + cin.getString(0) + "' ");
-                            }
-                        } else {
+
                             db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang-" + lsdata.get(i).getJumlah() + " " +
                                     "WHERE kode_barang='" + lsdata.get(i).getKode_barang() + "' ");
-                        }
-
                     }
                 } else {
 
@@ -311,17 +460,8 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                                 "" + Oneforallfunc.validdouble(lsdata.get(i).getHarga_jual()) + "," +
                                 "" + Oneforallfunc.validdouble(lsdata.get(i).getDiskon()) + "" +
                                 ")");
-                        if (lsdata.get(i).getTipe_barang() == 1) {
-                            String kode_barang_racik = lsdata.get(i).getKode_barang();
-                            Cursor cup = db.rawQuery("SELECT kode_barang_isi,jumlah_isi FROM racikan WHERE kode_barang_racik='" + kode_barang_racik + "'", null);
-                            while (cup.moveToNext()) {
-                                db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang-" + (cup.getDouble(1) * lsdata.get(i).getJumlah()) + " " +
-                                        "WHERE kode_barang='" + cup.getString(0) + "' ");
-                            }
-                        } else {
                             db.execSQL("UPDATE persediaan SET jumlah_barang=jumlah_barang-" + lsdata.get(i).getJumlah() + " " +
                                     "WHERE kode_barang='" + lsdata.get(i).getKode_barang() + "' ");
-                        }
                     }
 
                 }
@@ -334,34 +474,52 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                 db.close();
             }
 
+            final StringBuilder sb = new StringBuilder();
+            final String namaPerusahan = SharedPrefManager.getInstance(getApplicationContext()).getUser().getNamaPerusahaan();
+            final String hp = SharedPrefManager.getInstance(getApplicationContext()).getUser().getNoHp();
+            final String alamat = SharedPrefManager.getInstance(getApplicationContext()).getUser().getAlamat();
+            final String nama_kasir = SharedPrefManager.getInstance(getApplicationContext()).getUser().getNama();
 
-            StringBuilder sb = new StringBuilder();
+            sb.append(namaPerusahan);
+            System.out.println("nama perusahaan " +namaPerusahan);
             sb.append("\n");
-            sb.append( sp.getString("nama_usaha","none")+ "\n");
-            sb.append( sp.getString("alamat_usaha","none")+ "\n");
-            sb.append( sp.getString("nohp_usaha","none")+ "\n");
+            sb.append(hp);
+            System.out.println("no hp " +hp);
             sb.append("\n");
+            sb.append(alamat);
+            System.out.println("alamat " +alamat);
+            sb.append("\n");
+            sb.append("================================");
+            SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy h:m:s");
+                    //.format(cal.getTime());
+            String waktukini = sdf.format(cal.getTime());
+            sb.append(waktukini);
+            sb.append("\n");
+            sb.append("Nama Kasir : "+nama_kasir);
+            sb.append("\n\n");
+
             for (int i = 0; i < lsdata.size(); i++) {
                 if (lsdata.get(i).getDiskon() > 0) {
                     sb.append(
                             i + 1 + "." + lsdata.get(i).getNama_barang()
-                                    + "\nRp." + lsdata.get(i).getHarga_jual() + " x " + nf.format(lsdata.get(i).getJumlah()) +
-                                    " ( Diskon = " + nf.format(lsdata.get(i).getDiskon()) + "% )" +
+                                    + "\nRp." + nf.format(lsdata.get(i).getHarga_jual()) + " x " + nf.format(lsdata.get(i).getJumlah()) +
+                                    " (Diskon = " + nf.format(lsdata.get(i).getDiskon()) + "%)" +
                                     "\nTotal = Rp." + nf.format(lsdata.get(i).getTotal()) + "\n");
                 } else {
                     sb.append(
                             i + 1 + "." + lsdata.get(i).getNama_barang()
-                                    + "\nRp." + lsdata.get(i).getHarga_jual() + "x" + nf.format(lsdata.get(i).getJumlah()) +
+                                    + "\nRp." + nf.format(lsdata.get(i).getHarga_jual()) + " x " + nf.format(lsdata.get(i).getJumlah()) +
                                     "\nTotal = Rp." + nf.format(lsdata.get(i).getTotal()) + "\n");
                 }
 
             }
-            sb.append("\n");
+            System.out.println("berhasil print");
+            sb.append("================================\n");
             sb.append("Total : Rp. " + ltotal.getText().toString());
             sb.append("\n");
-            sb.append("Terima Kasih \n");
-            sb.append("Telah Berkunjung");
-            sb.append("\n\n\n");
+            sb.append("\nTerima Kasih Telah Berkunjung\n");
+            sb.append("================================\n");
+            sb.append("\n\n");
 
             if (!sp.getString("default_printer","none").equals("none")) {
                 try{
@@ -370,7 +528,7 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                         Bluetoothprint bt = new Bluetoothprint(TambahPenjualanActivity.this);
                         bt.print(sb.toString());
                     } else {
-                        AlertDialog.Builder adb=new AlertDialog.Builder(this);
+                        AlertDialog.Builder adb=new AlertDialog.Builder(TambahPenjualanActivity.this);
                         adb.setTitle("Informasi");
                         adb.setMessage("Bluetooth Tidak Aktif, Aktifkan bluetooth atau masuk ke pengaturan untuk setting bluetooth printer");
                         adb.setPositiveButton("Tutup", new DialogInterface.OnClickListener() {
@@ -381,165 +539,12 @@ public class TambahPenjualanActivity extends AppCompatActivity {
                         });
                     }
                 }catch (Exception ex){
-                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
                 }
 
             }
-
         }
-    }
 
-    private void savedata() {
-        bsimpan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                rawsavedata(0);
-            }
-        });
-    }
-
-    private void bayar() {
-        bbayar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (lsdata.size() <= 0) {
-                    Toast.makeText(TambahPenjualanActivity.this, "Proses Ditolak, Anda Belum Memasukan data", Toast.LENGTH_SHORT).show();
-                } else {
-                    final AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenjualanActivity.this);
-                    View vi = getLayoutInflater().inflate(R.layout.bayar_layout, null);
-                    final TextView ltotalbelanja = vi.findViewById(R.id.ltotalbelanja);
-                    final TextView lkembalian = vi.findViewById(R.id.lkembalian);
-                    final EditText edjumlahuang = (EditText) vi.findViewById(R.id.edjumlahuang);
-                    Button boke = vi.findViewById(R.id.boke);
-                    Button bpas = vi.findViewById(R.id.bpass);
-                    Button b5 = vi.findViewById(R.id.b5);
-                    Button b10 = vi.findViewById(R.id.b10);
-                    Button b20 = vi.findViewById(R.id.b20);
-                    Button b50 = vi.findViewById(R.id.b50);
-                    Button b100 = vi.findViewById(R.id.b100);
-                    ltotalbelanja.setText(ltotal.getText().toString());
-                    final double kembali = 0 - Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                    lkembalian.setText(nf.format(kembali));
-                    adb.setTitle("Pembayaran");
-                    adb.setView(vi);
-                    adb.setCancelable(false);
-                    adb.setNeutralButton("Tutup", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-                    final AlertDialog ad = adb.create();
-                    boke.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            rawsavedata(1);
-                            ad.dismiss();
-                            lsdata.clear();
-                            adapter.notifyDataSetChanged();
-                            ednotrans.setText(dbo.getkodetransaksi("PJ"));
-                            edtanggaltrans.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-                            eddesk.setText("");
-                            edkodebarang.setText("");
-                            ltotal.setText("0");
-                            edkodebarang.setFocusable(true);
-                            edkodebarang.requestFocus();
-
-
-                        }
-                    });
-
-                    View.OnClickListener blistener = new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            double hasil = 0.0;
-                            switch (v.getId()) {
-                                case R.id.bpass:
-                                    try {
-                                        rawsavedata(1);
-                                        ad.dismiss();
-                                        lsdata.clear();
-                                        adapter.notifyDataSetChanged();
-                                        ednotrans.setText(dbo.getkodetransaksi("PJ"));
-                                        edtanggaltrans.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-                                        eddesk.setText("");
-                                        edkodebarang.setText("");
-                                        ltotal.setText("0");
-                                        edkodebarang.setFocusable(true);
-                                        edkodebarang.requestFocus();
-                                        break;
-                                    } catch (Exception ex) {
-                                        Toast.makeText(TambahPenjualanActivity.this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-                                        ex.printStackTrace();
-                                    }
-                                case R.id.b5:
-                                    edjumlahuang.setText("5.000");
-                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString().replace(".", "")) -
-                                            Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                                    lkembalian.setText(nf.format(hasil));
-                                    break;
-                                case R.id.b10:
-                                    edjumlahuang.setText("10.000");
-                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString().replace(".", "")) -
-                                            Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                                    lkembalian.setText(nf.format(hasil));
-                                    break;
-                                case R.id.b20:
-                                    edjumlahuang.setText("20.000");
-                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString().replace(".", "")) -
-                                            Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                                    lkembalian.setText(nf.format(hasil));
-                                    break;
-                                case R.id.b50:
-                                    edjumlahuang.setText("50.000");
-                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString().replace(".", "")) -
-                                            Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                                    lkembalian.setText(nf.format(hasil));
-                                    break;
-                                case R.id.b100:
-                                    edjumlahuang.setText("10.0000");
-                                    hasil = Oneforallfunc.Stringtodouble(edjumlahuang.getText().toString().replace(".", "")) -
-                                            Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                                    lkembalian.setText(nf.format(hasil));
-                                    break;
-
-                            }
-
-
-                        }
-                    };
-                    bpas.setOnClickListener(blistener);
-                    b5.setOnClickListener(blistener);
-                    b10.setOnClickListener(blistener);
-                    b20.setOnClickListener(blistener);
-                    b50.setOnClickListener(blistener);
-                    b100.setOnClickListener(blistener);
-
-                    edjumlahuang.addTextChangedListener(new TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            double jumlahuang = Oneforallfunc.Stringtodouble(String.valueOf(s));
-                            double jumlahbelanja = Oneforallfunc.Stringtodouble(ltotal.getText().toString().replace(".", ""));
-                            double kembali = jumlahuang - jumlahbelanja;
-                            lkembalian.setText(nf.format(kembali));
-
-                        }
-
-                        @Override
-                        public void afterTextChanged(Editable s) {
-
-                        }
-                    });
-                    ad.show();
-                }
-
-            }
-        });
     }
 
     private void gettanggal() {
@@ -592,10 +597,9 @@ public class TambahPenjualanActivity extends AppCompatActivity {
         String kode_barang, nama_barang, satuan;
         double harga_jual, jumlah, total, diskon;
         String gambar_barang;
-        int tipe_barang;
 
         public TambahpenjualanModel(String kode_barang, String nama_barang, String satuan, double harga_jual, double jumlah,
-                                    double total, double diskon, String gambar_barang, int tipe_barang) {
+                                    double total, double diskon, String gambar_barang) {
             this.kode_barang = kode_barang;
             this.nama_barang = nama_barang;
             this.satuan = satuan;
@@ -604,7 +608,6 @@ public class TambahPenjualanActivity extends AppCompatActivity {
             this.total = total;
             this.diskon = diskon;
             this.gambar_barang = gambar_barang;
-            this.tipe_barang = tipe_barang;
         }
 
 
@@ -672,14 +675,6 @@ public class TambahPenjualanActivity extends AppCompatActivity {
             this.gambar_barang = gambar_barang;
         }
 
-        public int getTipe_barang() {
-            return tipe_barang;
-        }
-
-        public void setTipe_barang(int tipe_barang) {
-            this.tipe_barang = tipe_barang;
-        }
-
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof TambahpenjualanModel) {
@@ -692,7 +687,7 @@ public class TambahPenjualanActivity extends AppCompatActivity {
     public class TambahpenjualanAdapter extends RecyclerView.Adapter {
         ArrayList<TambahpenjualanModel> model = new ArrayList<>();
         Context ct;
-        NumberFormat nf = NumberFormat.getInstance();
+            NumberFormat nf = NumberFormat.getInstance();
         int content = 0;
 
         public TambahpenjualanAdapter(ArrayList<TambahpenjualanModel> model, Context ct) {
