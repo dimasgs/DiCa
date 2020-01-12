@@ -85,63 +85,69 @@ public class TambahPenggunaActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<ListPengguna>> call, Response<List<ListPengguna>> response) {
                 final List<ListPengguna> listuser = response.body();
-
                 final String[] user = new String[listuser.size()];
-                System.out.println(response.body());
-
                 for (int i = 0; i < listuser.size(); i++) {
-                    user[i] = listuser.get(i).getUsername();
-                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    if (String.valueOf(listuser.get(i).getError()).equals(false) && listuser.get(i).getSuccess() == 2) {
+                        Toast.makeText(getApplicationContext(), listuser.get(i).getMessage(), Toast.LENGTH_LONG).show();
+                        System.out.println("sout nya" + listuser.get(i).getMessage());
+                    } else if (String.valueOf(listuser.get(i).getError()).equals(false) && listuser.get(i).getSuccess() == 1) {
+                        user[i] = listuser.get(i).getUsername();
+                        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                            listuser.get(position).getIdUser();
-                            AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenggunaActivity.this);
-                            adb.setTitle("Konfirmasi");
-                            adb.setMessage("Yakin Ingin Menghapus "+listuser.get(position).getUsername());
-                            adb.setPositiveButton("Hapus", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    final String id_user = listuser.get(position).getIdUser();
-                                    Retrofit retrofit = new  Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
-                                            .addConverterFactory(GsonConverterFactory.create())
-                                            .build();
-                                    ApiService service = retrofit.create(ApiService.class);
-                                    Call<DelUser> call = service.deleteUser(
-                                            id_user
-                                    );
-                                    call.enqueue(new Callback<DelUser>() {
-                                        @Override
-                                        public void onResponse(Call<DelUser> call, Response<DelUser> response) {
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                                listuser.get(position).getIdUser();
+                                AlertDialog.Builder adb = new AlertDialog.Builder(TambahPenggunaActivity.this);
+                                adb.setTitle("Konfirmasi");
+                                adb.setMessage("Yakin Ingin Menghapus " + listuser.get(position).getUsername());
+                                adb.setPositiveButton("Hapus", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        final String id_user = listuser.get(position).getIdUser();
+                                        Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
+                                                .addConverterFactory(GsonConverterFactory.create())
+                                                .build();
+                                        ApiService service = retrofit.create(ApiService.class);
+                                        Call<DelUser> call = service.deleteUser(
+                                                id_user
+                                        );
+                                        call.enqueue(new Callback<DelUser>() {
+                                            @Override
+                                            public void onResponse(Call<DelUser> call, Response<DelUser> response) {
 
-                                            if(!response.body().getError()){
-                                                System.out.println("id user di hapus user " +id_user);
-                                                System.out.println("berhasil hapus pengguna");
-                                                Toast.makeText(TambahPenggunaActivity.this, "Berhasil Menghapus Pengguna", Toast.LENGTH_SHORT).show();
-                                            } else {
-                                                System.out.println("gagal hapus pengguna");
-                                                Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+                                                if (!response.body().getError()) {
+                                                    System.out.println("id user di hapus user " + id_user);
+                                                    System.out.println("berhasil hapus pengguna");
+                                                    Toast.makeText(TambahPenggunaActivity.this, "Berhasil Menghapus Pengguna", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    System.out.println("gagal hapus pengguna");
+                                                    Toast.makeText(getApplicationContext(), response.body().getMessage(), Toast.LENGTH_LONG).show();
+                                                }
                                             }
-                                        }
-                                        @Override
-                                        public void onFailure(Call<DelUser> call, Throwable t) {
-                                            System.out.println("failure");
-                                            Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                            });
 
-                            adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                            adb.show();
-                            getUserList();
-                        }
-                    });
+                                            @Override
+                                            public void onFailure(Call<DelUser> call, Throwable t) {
+                                                System.out.println("failure");
+                                                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+                                });
+
+                                adb.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                });
+                                adb.show();
+                                getUserList();
+                            }
+                        });
+
+                    } else{
+
+                }
                 }
 
                 listView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, user));
@@ -149,7 +155,7 @@ public class TambahPenggunaActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<ListPengguna>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(),"Gagal Memuat Data", Toast.LENGTH_SHORT).show();
             }
         });
         //hapus user
