@@ -26,7 +26,7 @@ public class Pengguna extends AppCompatActivity {
 
         User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
 
-        profile_nama.setText(SharedPrefManager.getInstance(getApplicationContext()).getUser().getNama());
+        profile_nama.setText(user.getNama());
 
 
         btnLinkToListUser.setOnClickListener(new View.OnClickListener() {

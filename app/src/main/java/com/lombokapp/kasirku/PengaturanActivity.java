@@ -94,8 +94,6 @@ public class PengaturanActivity extends AppCompatActivity {
                     final EditText edwebsite = new EditText(PengaturanActivity.this);
                     final EditText ednohp_usaha = new EditText(PengaturanActivity.this);
 
-
-                    final User dian = new User();
                     final User user = SharedPrefManager.getInstance(getApplicationContext()).getUser();
                     final String id_perusahaan = user.getperusahaan();
                     Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl.BASE_URL)
@@ -147,7 +145,7 @@ public class PengaturanActivity extends AppCompatActivity {
                                 edwebsite.setFocusable(false);
                                 edwebsite.setFocusableInTouchMode(false);
                                 edwebsite.setClickable(false);
-                                SharedPrefManager.getInstance(getApplicationContext()).userLogin(dian);
+                                SharedPrefManager.getInstance(getApplicationContext()).dataperusahaan(dian);
                                 //Toast.makeText(PengaturanActivity.this, "Informasi Berhasil Diperbaharui", Toast.LENGTH_SHORT).show();
                             }else {
                                 System.out.println("gagal pengaturan");

@@ -142,15 +142,16 @@ public class LoginActivity extends AppCompatActivity {
                         if (!response.body().getError() && response.body().getSuccess()==1) {
                             progressDialog.dismiss();
                             finish();
-                            System.out.println("Berhasil");
+                            System.out.println("Berhasil Login");
                             dian.setNama(username);
                             dian.setPerusahaan(perusahaan);
                             dian.setStatus(response.body().getStatus());
                             dian.setIduser(response.body().getId());
-                            System.out.println("ini status " + response.body().getStatus());
-                            System.out.println("ini id dari response " + response.body().getId());
                             System.out.println("ini id dari user.java :" + dian.getIduser());
-                            System.out.println(perusahaan);
+                            System.out.println("username :" +username);
+                            System.out.println("Pass : " +pass);
+                            System.out.println("Status :" + dian.getStatus());
+                            System.out.println("id perusahaan : "+perusahaan);
                             SharedPrefManager.getInstance(getApplicationContext()).userLogin(dian);
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         } else if (response.body().getSuccess()==2){

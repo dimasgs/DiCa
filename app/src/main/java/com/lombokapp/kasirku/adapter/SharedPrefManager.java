@@ -45,6 +45,8 @@ public class SharedPrefManager {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(KEY_USER_ID_PERUSAHAAN, user.getperusahaan());
         editor.putString(KEY_USER_NAME, user.getNama());
+        editor.putString(KEY_USER_ID_USER, user.getIduser());
+        editor.putString(KEY_USER_STATUS,user.getStatus());
         editor.apply();
     }
 
@@ -62,7 +64,15 @@ public class SharedPrefManager {
                 sharedPreferences.getString(KEY_USER_STATUS,null)
         );
     }
-    public String getiduser(){
-        return sp.getString(KEY_USER_ID_USER, null);
+    public void dataperusahaan(User user){
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(KEY_USER_NAME_PERUSAHAAN, user.getNamaPerusahaan());
+        editor.putString(KEY_USER_ALAMAT, user.getAlamat());
+        editor.putString(KEY_USER_EMAIL, user.getEmail());
+        editor.putString(KEY_USER_WEBSITE, user.getWebsite());
+        editor.putString(KEY_USER_HP, user.getNoHp());
+        editor.putString(KEY_USER_NAME_PERUSAHAAN, user.getNamaPerusahaan());
+        editor.apply();
     }
 }
